@@ -447,7 +447,11 @@
             font-size: 20px; font-weight: 700; color: var(--accent);
         }
         .correction-item .ci-note {
-            font-size: 10px; color: var(--text-light); margin-top: 2px;
+            font-size: 11px; color: var(--text-muted); margin-top: 6px;
+            line-height: 1.4;
+        }
+        .correction-item .ci-note strong {
+            font-weight: 700; color: var(--text);
         }
         .correction-item.warn .ci-value { color: var(--amber); }
         .correction-item.danger .ci-value { color: var(--red); }
@@ -464,15 +468,17 @@
         .correction-item.warn input.ci-input { color: var(--amber); }
         .correction-item.danger input.ci-input { color: var(--red); }
         .ci-input-sm {
-            font-size: 10px; font-weight: 700; color: var(--text-light);
-            text-align: center; background: transparent; border: none;
-            border-bottom: 1px dashed var(--border);
-            width: 32px; padding: 0; font-family: 'Inter', sans-serif;
+            font-size: 13px; font-weight: 700; color: var(--accent);
+            text-align: center; background: var(--accent-light);
+            border: 1.5px dashed var(--border);
+            border-radius: 6px;
+            width: 48px; padding: 3px 4px; font-family: 'Inter', sans-serif;
             outline: none; -moz-appearance: textfield;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
         .ci-input-sm::-webkit-inner-spin-button,
         .ci-input-sm::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        .ci-input-sm:focus { border-bottom-color: var(--accent); }
+        .ci-input-sm:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(26,58,92,0.10); border-style: solid; }
         .correction-hka-row {
             background: var(--accent-light); border-radius: var(--radius-sm);
             padding: 10px; text-align: center; margin-top: 8px;
@@ -1605,6 +1611,8 @@ function onPostopEdit() {
 //  FASE 2: CORRECCIÓN POSTOPERATORIA
 // ─────────────────────────────────────────────
 function onCalcularCorreccion() {
+    // Re-run phase1 to sync _phase1 with current inputs (user may have edited after "Calcular")
+    renderPhase1();
     if (!window._phase1) { mostrarToast('Introduce primero los parámetros angulares'); return; }
     const targetEl = document.getElementById('inp-target');
     if (targetEl.value === '') { mostrarToast('Introduce el HKA objetivo'); targetEl.focus(); return; }
@@ -1647,10 +1655,10 @@ function onCalcularCorreccion() {
     const jloClr = correc.jloPostop > 5 ? 'danger' : correc.jloPostop > 4 ? 'warn' : '';
     const hkaResultante = correc.targetMPTA - correc.targetLDFA + 180;
     document.getElementById('correction-grid').innerHTML = `
-        <div class="correction-item ${mpClr}" id="ci-box-mmpta"><div class="ci-label">mMPTA postop</div><div class="ci-value"><input type="number" class="ci-input" id="ci-mmpta" value="${correc.targetMPTA.toFixed(1)}" step="0.5" inputmode="decimal">°</div><div class="ci-note">Actual: ${mmpta}° / Límite: &lt;95°</div></div>
-        <div class="correction-item" id="ci-box-mldfa"><div class="ci-label">mLDFA postop</div><div class="ci-value"><input type="number" class="ci-input" id="ci-mldfa" value="${correc.targetLDFA.toFixed(1)}" step="0.5" inputmode="decimal">°</div><div class="ci-note">Actual: ${mldfa}° / Normal: 84-90°</div></div>
-        <div class="correction-item ${jloClr}" id="ci-box-jlo"><div class="ci-label">JLO postop</div><div class="ci-value" id="ci-jlo">${correc.jloPostop.toFixed(1)}°</div><div class="ci-note">Límite: &lt;5°</div></div>
-        <div class="correction-item" id="ci-box-wedge"><div class="ci-label">Altura cuña</div><div class="ci-value" id="ci-wedge">${correc.wedgeHeight.toFixed(1)} mm</div><div class="ci-note">Anchura tibial: <input type="number" class="ci-input-sm" id="ci-tibwidth" value="${TIBIAL_WIDTH}" step="1" inputmode="numeric"> mm</div></div>
+        <div class="correction-item ${mpClr}" id="ci-box-mmpta"><div class="ci-label">mMPTA postop</div><div class="ci-value"><input type="number" class="ci-input" id="ci-mmpta" value="${correc.targetMPTA.toFixed(1)}" step="0.5" inputmode="decimal">°</div><div class="ci-note">Actual: <strong>${mmpta}°</strong> · Límite: <strong>&lt;95°</strong></div></div>
+        <div class="correction-item" id="ci-box-mldfa"><div class="ci-label">mLDFA postop</div><div class="ci-value"><input type="number" class="ci-input" id="ci-mldfa" value="${correc.targetLDFA.toFixed(1)}" step="0.5" inputmode="decimal">°</div><div class="ci-note">Actual: <strong>${mldfa}°</strong> · Límite: <strong>84-90°</strong></div></div>
+        <div class="correction-item ${jloClr}" id="ci-box-jlo"><div class="ci-label">JLO postop</div><div class="ci-value" id="ci-jlo">${correc.jloPostop.toFixed(1)}°</div><div class="ci-note">Límite: <strong>&lt;5°</strong></div></div>
+        <div class="correction-item" id="ci-box-wedge"><div class="ci-label">Altura cuña</div><div class="ci-value" id="ci-wedge">${correc.wedgeHeight.toFixed(1)} mm</div><div class="ci-note">Anchura tibial: <input type="number" class="ci-input-sm" id="ci-tibwidth" value="${TIBIAL_WIDTH}" step="1" inputmode="numeric"> mm <span style="font-size:10px;opacity:0.6">✏️</span></div></div>
         <div class="correction-hka-row" id="ci-box-hka"><div class="ci-label">HKA resultante</div><div class="ci-value" id="ci-hka">${hkaResultante.toFixed(1)}°</div></div>
     `;
 
