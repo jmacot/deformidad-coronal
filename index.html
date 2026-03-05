@@ -266,6 +266,26 @@
         .info-row.purple { background: var(--purple-light); color: #5b21b6; }
         .info-row.neutral { background: var(--surface2); color: var(--text-muted); }
 
+        .components-layout {
+            display: flex; gap: 20px; align-items: flex-start;
+        }
+        .components-layout .components-data { flex: 1; min-width: 0; }
+        .components-layout .components-img {
+            flex-shrink: 0; width: 180px;
+            border-radius: var(--radius-sm); overflow: hidden;
+        }
+        .components-layout .components-img img {
+            width: 100%; height: auto; display: block;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-light);
+        }
+        @media (max-width: 600px) {
+            .components-layout { flex-direction: column; }
+            .components-layout .components-img {
+                width: 140px; align-self: center;
+            }
+        }
+
         /* ── CONTRIBUTION BARS (D3) ── */
         .contrib-section { margin: 16px 0; }
         .contrib-label {
@@ -707,7 +727,12 @@
         <!-- Análisis de Componentes -->
         <div class="card" style="animation-delay:0.15s">
             <div class="section-title">Análisis de componentes (AKUMA)</div>
-            <div id="component-rows"></div>
+            <div class="components-layout">
+                <div class="components-data" id="component-rows"></div>
+                <div class="components-img">
+                    <img src="img/angulos-rodilla.jpg" alt="Ángulos coronales de la rodilla: LDFA, MPTA, JLCA" loading="lazy">
+                </div>
+            </div>
             <div class="contrib-section">
                 <div class="contrib-label">Distribución</div>
                 <div class="d3-chart-wrap" id="bar-iad-ead"></div>
