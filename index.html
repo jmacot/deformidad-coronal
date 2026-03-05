@@ -123,10 +123,10 @@
 
         /* ── INPUTS (compactos) ── */
         .input-row {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+            display: flex; gap: 10px; flex-wrap: wrap;
             margin-bottom: 4px;
         }
-        .input-group { margin-bottom: 6px; }
+        .input-group { margin-bottom: 6px; flex: 1; min-width: 70px; }
         .input-group label {
             font-size: 11px; font-weight: 700; color: var(--text-muted);
             letter-spacing: 0.5px;
@@ -134,13 +134,9 @@
         }
         .input-group input {
             width: 100%; border: 1.5px solid var(--border); border-radius: 8px;
-            padding: 8px 10px; font-size: 15px; font-family: 'Inter', Arial, sans-serif;
+            padding: 8px 6px; font-size: 15px; font-family: 'Inter', Arial, sans-serif;
             font-weight: 600; color: var(--text); text-align: center;
             transition: border-color 0.2s; background: var(--surface);
-        }
-        .input-row-3 {
-            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
-            margin-bottom: 4px;
         }
         .input-group input::placeholder { color: #bbb; font-weight: 400; }
         .input-group input:focus {
@@ -700,8 +696,8 @@
             .app-header { padding: 32px 20px 24px; border-radius: var(--radius); }
             .app-header::before, .app-header::after { display: none; }
             .theme-toggle { width: 36px; height: 36px; font-size: 1.1rem; top: 8px; right: 8px; }
-            .input-row { grid-template-columns: 1fr 1fr; gap: 10px; }
-            .input-row-3 { grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+            .input-row { gap: 8px; }
+            .input-group { min-width: 55px; flex: 1 1 28%; max-width: 33%; }
             .card { padding: 18px 16px; }
             .correction-card { padding: 18px 16px; }
             .results-bar { grid-template-columns: repeat(2, 1fr); }
@@ -759,10 +755,7 @@
             <div class="input-group">
                 <label>mHKA</label>
                 <input type="number" id="inp-mhka" min="160" max="200" step="0.1" placeholder="180" inputmode="decimal">
-                <div class="input-hint">&lt;180° = varo / &gt;180° = valgo</div>
             </div>
-        </div>
-        <div class="input-row-3">
             <div class="input-group">
                 <label>mLDFA</label>
                 <input type="number" id="inp-mldfa" min="75" max="100" step="0.1" placeholder="87" inputmode="decimal">
@@ -776,6 +769,7 @@
                 <input type="number" id="inp-jlca" min="0" max="15" step="0.1" placeholder="1" inputmode="decimal">
             </div>
         </div>
+        <div class="input-hint" style="text-align:center; margin-bottom: 4px;">mHKA: &lt;180° = varo / &gt;180° = valgo</div>
         <div class="btn-row">
             <button class="btn-calcular" onclick="renderPhase1()">Calcular</button>
             <button class="btn-reset" onclick="onLimpiar()">Restablecer</button>
