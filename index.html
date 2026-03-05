@@ -1092,12 +1092,12 @@ function diagnosticoDiferencial(akuma, edad, mLDFA, mMPTA, JLCA, targetHKA, mHKA
     } else if (eadPct > 60) {
         if (fPct >= 80) {
             recoType = 'Osteotomía femoral distal'; recoName = 'DFO';
-            recoVariant = esVaro ? 'Apertura cuña medial' : 'Cierre cuña lateral';
+            recoVariant = esVaro ? 'Cierre cuña lateral (LCWDFO)' : 'Cierre cuña medial (MCWDFO)';
             rationale = `Deformidad extra-articular (EAD ${eadPct}%) predominantemente femoral (F% ${fPct}% ≥ 80%). mLDFA ${mLDFA}° desviado respecto a 87° (normal: 84-90°). La corrección se realiza a nivel femoral distal.`;
             recoClass = '';
         } else if (tPct >= 80 && Math.abs(FD) <= 3 && !needsDLO) {
             recoType = 'Osteotomía tibial alta'; recoName = 'HTO';
-            recoVariant = esVaro ? 'Apertura cuña medial (MOWHTO)' : 'Cierre cuña lateral (LCWHTO)';
+            recoVariant = esVaro ? 'Apertura cuña medial (MOWHTO)' : 'Cierre cuña medial (MCWHTO)';
             rationale = `Deformidad extra-articular (EAD ${eadPct}%) predominantemente tibial (T% ${tPct}%). FD ${FD.toFixed(1)}° ≤ 3° permite HTO aislada sin riesgo excesivo de JLO. MPTA postop estimado: ${mpptaPostHTO.toFixed(1)}°.`;
             recoClass = '';
         } else if (needsDLO) {
@@ -1114,7 +1114,7 @@ function diagnosticoDiferencial(akuma, edad, mLDFA, mMPTA, JLCA, targetHKA, mHKA
             recoClass = 'dlo';
         } else {
             recoType = 'Osteotomía tibial alta'; recoName = 'HTO';
-            recoVariant = esVaro ? 'Apertura cuña medial (MOWHTO)' : 'Cierre cuña lateral (LCWHTO)';
+            recoVariant = esVaro ? 'Apertura cuña medial (MOWHTO)' : 'Cierre cuña medial (MCWHTO)';
             rationale = `Deformidad extra-articular (EAD ${eadPct}%) con contribuciones mixtas (T% ${tPct}%, F% ${fPct}%). FD dentro de límites aceptables. MPTA postop estimado: ${mpptaPostHTO.toFixed(1)}° (aceptable).`;
             recoClass = '';
         }
@@ -1289,6 +1289,10 @@ function renderContribBar(containerId, segments, legendId) {
     const container = document.getElementById(containerId);
     const legend = document.getElementById(legendId);
     if (!container) return;
+
+    // Filter out 0% segments
+    segments = segments.filter(s => s.pct > 0);
+    if (segments.length === 0) { container.innerHTML = ''; return; }
 
     const theme = getChartTheme();
     const hasSub = segments.some(s => s.barSub);
