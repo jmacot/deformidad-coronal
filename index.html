@@ -271,7 +271,7 @@
         }
         .components-layout .components-data { flex: 1; min-width: 0; }
         .components-layout .components-img {
-            flex-shrink: 0; width: 180px;
+            flex-shrink: 0; width: 280px; position: relative;
             border-radius: var(--radius-sm); overflow: hidden;
         }
         .components-layout .components-img img {
@@ -279,10 +279,30 @@
             border-radius: var(--radius-sm);
             border: 1px solid var(--border-light);
         }
+        .components-layout .components-img .img-dark { display: none; }
+        [data-theme="dark"] .components-layout .components-img .img-light { display: none; }
+        [data-theme="dark"] .components-layout .components-img .img-dark { display: block; }
+        .angle-overlay {
+            position: absolute; font-family: 'Inter', sans-serif;
+            font-size: 12px; font-weight: 700; line-height: 1;
+            padding: 3px 7px; border-radius: 5px;
+            white-space: nowrap; pointer-events: none;
+            background: rgba(255,255,255,0.92); color: var(--accent);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+        }
+        [data-theme="dark"] .angle-overlay {
+            background: rgba(17,24,39,0.88); color: #93c5fd;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+        }
+        .angle-overlay.warn { color: var(--amber); }
+        .angle-overlay.danger { color: var(--red); }
+        .angle-ldfa { top: 34%; left: 6%; }
+        .angle-mpta { bottom: 24%; left: 28%; }
+        .angle-jlca { top: 34%; right: 6%; }
         @media (max-width: 600px) {
             .components-layout { flex-direction: column; }
             .components-layout .components-img {
-                width: 140px; align-self: center;
+                width: 220px; align-self: center;
             }
         }
 
@@ -729,8 +749,12 @@
             <div class="section-title">Análisis de componentes (AKUMA)</div>
             <div class="components-layout">
                 <div class="components-data" id="component-rows"></div>
-                <div class="components-img">
-                    <img src="img/angulos-rodilla.jpg" alt="Ángulos coronales de la rodilla: LDFA, MPTA, JLCA" loading="lazy">
+                <div class="components-img" id="components-img-wrap">
+                    <img class="img-light" src="img/angulos-rodilla.jpg" alt="Ángulos coronales de la rodilla" loading="lazy">
+                    <img class="img-dark" src="img/angulos-rodilla-dark.jpg" alt="Ángulos coronales de la rodilla" loading="lazy">
+                    <span class="angle-overlay angle-ldfa" id="ov-ldfa"></span>
+                    <span class="angle-overlay angle-mpta" id="ov-mpta"></span>
+                    <span class="angle-overlay angle-jlca" id="ov-jlca"></span>
                 </div>
             </div>
             <div class="contrib-section">
@@ -1378,6 +1402,19 @@ function renderPhase1() {
         <div class="info-row ${jlcaStatus}"><span class="info-icon">&#9671;</span><div><strong>Intra-articular (JLCA ${_jlca}°) — ${jlcaDir}</strong><br>${_jlca <= 2 ? 'Normal. Sin componente intra-articular significativo.' : _jlca <= 4 ? 'Moderadamente elevado. Puede reflejar desgaste articular y/o laxitud de partes blandas (<a class="ref-link" href="https://doi.org/10.1186/s40634-020-00283-1" target="_blank">Micicoi et al. 2020</a>).' : 'Patológico (>4°). Componente intra-articular significativo: desgaste cartilaginoso y/o laxitud ligamentosa.'}</div></div>
         <div class="info-row neutral"><span class="info-icon">&#931;</span><div><strong>Verificación:</strong> GD = |EAD| + IAD = ${akuma.absEAD.toFixed(1)} + ${akuma.IAD.toFixed(1)} = ${akuma.GD.toFixed(1)}°</div></div>
     `;
+
+    // Update angle overlays on image
+    const ovLdfa = document.getElementById('ov-ldfa');
+    const ovMpta = document.getElementById('ov-mpta');
+    const ovJlca = document.getElementById('ov-jlca');
+    if (ovLdfa) {
+        ovLdfa.textContent = `${_mldfa}°`;
+        ovLdfa.className = `angle-overlay angle-ldfa${ldfaStatus === 'amber' ? ' warn' : ldfaStatus === 'red' ? ' danger' : ''}`;
+        ovMpta.textContent = `${_mmpta}°`;
+        ovMpta.className = `angle-overlay angle-mpta${mptaStatus === 'amber' ? ' warn' : mptaStatus === 'red' ? ' danger' : ''}`;
+        ovJlca.textContent = `${_jlca}°`;
+        ovJlca.className = `angle-overlay angle-jlca${jlcaStatus === 'amber' ? ' warn' : jlcaStatus === 'red' ? ' danger' : ''}`;
+    }
 
     // D3 Contribution bars
     renderD3Bars(akuma, _mldfa, _mmpta);
