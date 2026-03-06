@@ -924,6 +924,7 @@
     <div id="d3-tooltip" class="d3-tooltip"></div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
 <script>
 // ─────────────────────────────────────────────
 //  CONSTANTES CLÍNICAS
@@ -1276,56 +1277,108 @@ function getChartTheme() {
     };
 }
 
-function showBarTooltip(event, html) {
-    const tip = document.getElementById('d3-tooltip');
-    tip.innerHTML = html;
-    tip.style.left = (event.clientX + 14) + 'px';
-    tip.style.top = (event.clientY - 10) + 'px';
-    tip.classList.add('visible');
+function showD3Tooltip(event, html) {
+    d3.select('#d3-tooltip').html(html)
+        .style('left', (event.clientX + 14) + 'px')
+        .style('top', (event.clientY - 10) + 'px')
+        .classed('visible', true);
 }
-function hideBarTooltip() { document.getElementById('d3-tooltip').classList.remove('visible'); }
+function hideD3Tooltip() { d3.select('#d3-tooltip').classed('visible', false); }
 
 function renderContribBar(containerId, segments, legendId) {
     const container = document.getElementById(containerId);
     const legend = document.getElementById(legendId);
     if (!container) return;
 
+    // Filter out 0% segments
     segments = segments.filter(s => s.pct > 0);
     if (segments.length === 0) { container.innerHTML = ''; return; }
 
     const theme = getChartTheme();
     const hasSub = segments.some(s => s.barSub);
-    const H = hasSub ? 40 : 32;
-
-    // Pure HTML/CSS bar — no SVG, no D3, works on file:// everywhere
-    const bar = document.createElement('div');
-    bar.style.cssText = 'display:flex;width:100%;height:' + H + 'px;border-radius:12px;overflow:hidden;background:' + theme.surface2 + ';';
-
-    segments.forEach((seg, i) => {
-        const pctW = Math.max(seg.pct, 2); // min 2% width for visibility
-        const segEl = document.createElement('div');
-        segEl.style.cssText = 'width:' + pctW + '%;height:100%;background:' + seg.color + ';display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:width 0.5s cubic-bezier(.33,1,.68,1) ' + (i * 100) + 'ms;';
-        segEl.title = seg.label + ': ' + seg.pct + '% (' + seg.value + '°)';
-        segEl.addEventListener('mouseover', function(e) {
-            showBarTooltip(e, '<strong>' + seg.label + '</strong><br>' + seg.pct + '% (' + seg.value + '°)');
-        });
-        segEl.addEventListener('mousemove', function(e) {
-            showBarTooltip(e, '<strong>' + seg.label + '</strong><br>' + seg.pct + '% (' + seg.value + '°)');
-        });
-        segEl.addEventListener('mouseout', hideBarTooltip);
-
-        if (seg.pct > 15) {
-            if (seg.barSub && seg.pct > 25) {
-                segEl.innerHTML = '<span style="color:rgba(255,255,255,0.95);font-size:13px;font-weight:700;line-height:1.1">' + seg.pct + '%</span><span style="color:rgba(255,255,255,0.7);font-size:9px;font-weight:600">' + seg.barSub + '</span>';
-            } else {
-                segEl.innerHTML = '<span style="color:rgba(255,255,255,0.9);font-size:11px;font-weight:700">' + seg.pct + '%</span>';
-            }
-        }
-        bar.appendChild(segEl);
-    });
+    const W = 400, H = hasSub ? 40 : 32, R = 12;
 
     container.innerHTML = '';
-    container.appendChild(bar);
+    const svg = d3.select(container).append('svg')
+        .attr('width', W)
+        .attr('height', H)
+        .attr('viewBox', `0 0 ${W} ${H}`)
+        .attr('preserveAspectRatio', 'xMidYMid meet');
+
+    const defs = svg.append('defs');
+    const clipId = containerId + '-clip';
+    defs.append('clipPath').attr('id', clipId)
+        .append('rect').attr('width', W).attr('height', H).attr('rx', R);
+
+    svg.append('rect').attr('width', W).attr('height', H).attr('rx', R)
+        .attr('fill', theme.surface2);
+
+    const g = svg.append('g').attr('clip-path', `url(#${clipId})`);
+
+    let x = 0;
+    segments.forEach((seg, i) => {
+        const w = (seg.pct / 100) * W;
+        const gradId = containerId + '-grad-' + i;
+
+        const grad = defs.append('linearGradient').attr('id', gradId)
+            .attr('x1', '0%').attr('y1', '0%').attr('x2', '100%').attr('y2', '0%');
+        const c = d3.color(seg.color);
+        grad.append('stop').attr('offset', '0%').attr('stop-color', c.brighter(0.3));
+        grad.append('stop').attr('offset', '100%').attr('stop-color', c.darker(0.1));
+
+        const segW = Math.max(w, W * 0.02);
+        g.append('rect')
+            .attr('x', x).attr('y', 0)
+            .attr('width', 0).attr('height', H)
+            .attr('fill', `url(#${gradId})`)
+            .style('cursor', 'pointer')
+            .on('mouseover', function(event) {
+                showD3Tooltip(event, '<strong>' + seg.label + '</strong><br>' + seg.pct + '% (' + seg.value + '°)');
+            })
+            .on('mousemove', function(event) {
+                showD3Tooltip(event, '<strong>' + seg.label + '</strong><br>' + seg.pct + '% (' + seg.value + '°)');
+            })
+            .on('mouseout', hideD3Tooltip)
+            .transition().duration(500).delay(i * 100).ease(d3.easeCubicOut)
+            .attr('width', segW);
+
+        if (w > 30) {
+            if (seg.barSub && w > 50) {
+                g.append('text')
+                    .attr('x', x + segW / 2).attr('y', H / 2 - 5)
+                    .attr('text-anchor', 'middle').attr('dominant-baseline', 'central')
+                    .attr('fill', 'rgba(255,255,255,0.95)')
+                    .attr('font-size', '13px').attr('font-weight', '700')
+                    .attr('font-family', 'Inter, sans-serif')
+                    .style('opacity', 0).style('pointer-events', 'none')
+                    .text(seg.pct + '%')
+                    .transition().delay(500 + i * 100).duration(200)
+                    .style('opacity', 1);
+                g.append('text')
+                    .attr('x', x + segW / 2).attr('y', H / 2 + 9)
+                    .attr('text-anchor', 'middle').attr('dominant-baseline', 'central')
+                    .attr('fill', 'rgba(255,255,255,0.7)')
+                    .attr('font-size', '9px').attr('font-weight', '600')
+                    .attr('font-family', 'Inter, sans-serif')
+                    .style('opacity', 0).style('pointer-events', 'none')
+                    .text(seg.barSub)
+                    .transition().delay(500 + i * 100).duration(200)
+                    .style('opacity', 1);
+            } else {
+                g.append('text')
+                    .attr('x', x + segW / 2).attr('y', H / 2 + 1)
+                    .attr('text-anchor', 'middle').attr('dominant-baseline', 'central')
+                    .attr('fill', 'rgba(255,255,255,0.9)')
+                    .attr('font-size', '11px').attr('font-weight', '700')
+                    .attr('font-family', 'Inter, sans-serif')
+                    .style('opacity', 0).style('pointer-events', 'none')
+                    .text(seg.pct + '%')
+                    .transition().delay(500 + i * 100).duration(200)
+                    .style('opacity', 1);
+            }
+        }
+        x += segW;
+    });
 
     if (legend) {
         legend.innerHTML = segments.map(s =>
@@ -1485,8 +1538,8 @@ function renderPhase1() {
         ovJlca.className = `angle-overlay angle-jlca${jlcaStatus === 'amber' ? ' warn' : jlcaStatus === 'red' ? ' danger' : ''}`;
     }
 
-    // Contribution bars
-    renderD3Bars(akuma, _mldfa, _mmpta);
+    // D3 Contribution bars (wrapped — no bloquea si D3 CDN falla)
+    try { renderD3Bars(akuma, _mldfa, _mmpta); } catch(e) { console.warn('D3 no disponible:', e.message); }
 
     const eadSection = document.getElementById('ead-detail-section');
     if (akuma.absEAD > 0) { eadSection.style.display = ''; }
