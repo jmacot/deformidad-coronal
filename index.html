@@ -1298,6 +1298,9 @@ function renderContribBar(containerId, segments, legendId) {
     const hasSub = segments.some(s => s.barSub);
     const W = 400, H = hasSub ? 40 : 32, R = 12;
 
+    // Fix for file:// protocol on Windows: url(#id) needs full base URL
+    const svgBase = window.location.href.replace(/#.*$/, '');
+
     container.innerHTML = '';
     const svg = d3.select(container).append('svg')
         .attr('width', W)
@@ -1313,7 +1316,7 @@ function renderContribBar(containerId, segments, legendId) {
     svg.append('rect').attr('width', W).attr('height', H).attr('rx', R)
         .attr('fill', theme.surface2);
 
-    const g = svg.append('g').attr('clip-path', `url(#${clipId})`);
+    const g = svg.append('g').attr('clip-path', `url(${svgBase}#${clipId})`);
 
     let x = 0;
     segments.forEach((seg, i) => {
@@ -1330,7 +1333,7 @@ function renderContribBar(containerId, segments, legendId) {
         g.append('rect')
             .attr('x', x).attr('y', 0)
             .attr('width', 0).attr('height', H)
-            .attr('fill', `url(#${gradId})`)
+            .attr('fill', `url(${svgBase}#${gradId})`)
             .style('cursor', 'pointer')
             .on('mouseover', function(event) {
                 showD3Tooltip(event, '<strong>' + seg.label + '</strong><br>' + seg.pct + '% (' + seg.value + '°)');
