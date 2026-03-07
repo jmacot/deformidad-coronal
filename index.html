@@ -543,6 +543,7 @@
 
         /* ── AKUMA FLOWCHART (TREE LAYOUT) ── */
         .akuma-chart { margin: 16px 0; }
+        .akuma-scroll-hint { display: none; }
         .akuma-tree { display: flex; flex-direction: column; align-items: center; gap: 0; }
         .akuma-top-node {
             background: var(--accent); color: white; padding: 10px 24px;
@@ -688,8 +689,17 @@
         @media (max-width: 768px) {
             .results-bar { grid-template-columns: repeat(3, 1fr); }
             .correction-grid { grid-template-columns: 1fr 1fr; }
-            .akuma-branches { grid-template-columns: 1fr; gap: 16px; }
-            .akuma-hline { display: none; }
+            .akuma-chart {
+                overflow-x: auto; -webkit-overflow-scrolling: touch;
+                margin-left: -24px; margin-right: -24px; padding: 0 24px;
+                position: relative;
+            }
+            .akuma-tree { min-width: 540px; }
+            .akuma-scroll-hint {
+                display: block; position: sticky; top: 0; right: 0;
+                text-align: center; font-size: 11px; color: var(--text-light);
+                padding: 4px 0 8px; font-weight: 500;
+            }
         }
         @media (max-width: 600px) {
             .back-home { padding: 4px 8px; font-size: 10px; top: 6px; left: 6px; }
@@ -707,7 +717,8 @@
             .formula-box { font-size: 13px; }
             .reco-name { font-size: 1.1rem; }
             .step-card { padding: 12px; gap: 10px; }
-            .akuma-sub-branches { grid-template-columns: 1fr; gap: 6px; }
+            .akuma-chart { margin-left: -16px; margin-right: -16px; padding: 0 16px; scrollbar-width: none; }
+            .akuma-chart::-webkit-scrollbar { display: none; }
         }
     </style>
 </head>
@@ -831,6 +842,7 @@
         <div class="card" style="animation-delay:0.25s">
             <div class="section-title">Algoritmo AKUMA (<a class="ref-link" href="articulos/Ollivier-KSSTA-2025.pdf" target="_blank" style="color:inherit;border-bottom-color:var(--text-light)">Ollivier et al. KSSTA 2025</a>)</div>
             <div class="akuma-chart" id="akuma-chart">
+                <div class="akuma-scroll-hint" id="akuma-scroll-hint"></div>
                 <div class="akuma-tree">
                     <div class="akuma-top-node" id="ak-top">Calcular GD, IAD%, EAD%</div>
                     <div class="akuma-connector">
@@ -1454,6 +1466,17 @@ function aplicarCasoAkuma() {
     }
 
     document.getElementById('link-reset-akuma').style.display = '';
+
+    // Auto-scroll horizontal to highlighted branch on mobile
+    const chart = document.getElementById('akuma-chart');
+    const highlighted = chart.querySelector('.akuma-branch.highlighted');
+    if (highlighted && chart.scrollWidth > chart.clientWidth) {
+        const chartRect = chart.getBoundingClientRect();
+        const branchRect = highlighted.getBoundingClientRect();
+        const scrollLeft = chart.scrollLeft + branchRect.left - chartRect.left
+            - (chartRect.width / 2) + (branchRect.width / 2);
+        chart.scrollTo({ left: Math.max(0, scrollLeft), behavior: 'smooth' });
+    }
 }
 
 function resetAkumaHighlight() {
@@ -1569,6 +1592,17 @@ function renderPhase1() {
     // Enable AKUMA button, reset any previous highlight
     document.getElementById('btn-aplicar-akuma').disabled = false;
     resetAkumaHighlight();
+
+    // Show scroll hint on mobile if chart overflows
+    const akumaHint = document.getElementById('akuma-scroll-hint');
+    requestAnimationFrame(() => {
+        const chart = document.getElementById('akuma-chart');
+        if (chart && chart.scrollWidth > chart.clientWidth + 8) {
+            akumaHint.textContent = 'Desliza para ver el algoritmo completo \u2192';
+        } else {
+            akumaHint.textContent = '';
+        }
+    });
 
     // Show phase 1, show phase 2 input
     document.getElementById('phase1-section').classList.add('visible');
