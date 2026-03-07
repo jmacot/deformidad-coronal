@@ -427,8 +427,81 @@
             animation: fadeInUp 0.6s ease-out 0.1s both;
         }
         .correction-card .section-title { color: var(--green); border-bottom-color: var(--green); text-align: center; }
+        /* ── Feucht zones panel ── */
+        .feucht-panel {
+            background: var(--surface2); border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm); padding: 14px; margin-bottom: 14px;
+        }
+        .feucht-panel summary {
+            font-size: 11px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.3px; color: var(--text-muted); cursor: pointer;
+            list-style: none; display: flex; align-items: center; gap: 6px;
+        }
+        .feucht-panel summary::-webkit-details-marker { display: none; }
+        .feucht-panel summary::before { content: '▸'; font-size: 10px; transition: transform 0.2s; }
+        .feucht-panel[open] summary::before { transform: rotate(90deg); }
+        .feucht-content { margin-top: 12px; }
+        .kl-toggles {
+            display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px;
+        }
+        .kl-btn {
+            flex: 1; min-width: 0; padding: 8px 4px; border-radius: 8px;
+            border: 1.5px solid var(--border); background: var(--surface);
+            font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600;
+            color: var(--text-muted); cursor: pointer; text-align: center;
+            transition: all 0.2s; line-height: 1.3;
+        }
+        .kl-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .kl-btn.active { border-color: var(--green); background: var(--green-light); color: var(--green); }
+        .kl-btn .kl-label { display: block; font-size: 12px; font-weight: 700; }
+        .kl-btn .kl-desc { display: block; font-size: 9px; font-weight: 500; opacity: 0.7; margin-top: 2px; }
+        .feucht-row {
+            display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;
+            justify-content: center; max-width: 340px; margin: 0 auto;
+        }
+        .feucht-row .input-group { flex: 1; min-width: 100px; }
+        .feucht-row .input-group label { font-size: 10px; }
+        .feucht-row .input-group input { width: 100%; padding: 10px 12px; font-size: 14px; }
+        .input-suffix-wrap { position: relative; display: flex; align-items: center; }
+        .input-suffix-wrap input { padding-right: 28px; }
+        .input-suffix { position: absolute; right: 10px; font-size: 13px; font-weight: 600; color: var(--text-muted); pointer-events: none; }
+        .feucht-result {
+            margin-top: 10px; padding: 8px 12px; border-radius: 8px;
+            background: var(--green-light); border: 1px solid var(--green);
+            font-size: 12px; color: var(--green); font-weight: 600;
+            text-align: center; display: none;
+        }
+        .feucht-zone-bar {
+            display: flex; height: 8px; border-radius: 4px; overflow: hidden;
+            margin: 8px 0 4px; margin-left: 42px;
+        }
+        .feucht-zone-bar .fz { height: 100%; position: relative; }
+        .feucht-zone-bar .fz-green { width: 33.3%; background: #16a34a; opacity: 0.3; }
+        .feucht-zone-bar .fz-blue { width: 33.3%; background: #2563eb; opacity: 0.3; }
+        .feucht-zone-bar .fz-red { width: 33.4%; background: #dc2626; opacity: 0.3; }
+        .feucht-zone-bar .fz.active { opacity: 1; }
+        .feucht-zone-labels {
+            display: flex; font-size: 11px; color: var(--text); font-weight: 700; margin-top: 4px;
+        }
+        .feucht-zone-labels span { flex: 1; text-align: center; }
+        .feucht-zone-labels .fzl-header { flex: 0 0 auto; width: 42px; text-align: left; font-size: 10px; color: var(--text-muted); letter-spacing: 0.03em; }
+        .wblr-link { color: var(--accent); text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 2px; cursor: pointer; font-weight: 700; }
+        .feucht-zone-refs { display: flex; font-size: 10px; color: var(--text-muted); font-style: italic; line-height: 1.3; margin-bottom: 10px; margin-left: 42px; }
+        .feucht-zone-refs span { flex: 1; text-align: center; padding: 0 2px; }
+        @media (max-width: 600px) {
+            .kl-btn { padding: 6px 2px; font-size: 10px; }
+            .kl-btn .kl-desc { font-size: 8px; }
+            .feucht-row { flex-direction: column; max-width: 100%; align-items: center; }
+            .feucht-row .input-group { min-width: 0; width: 100%; max-width: 260px; }
+        }
         .correction-input-row {
             display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 14px;
+        }
+        .correction-input-row .input-group label {
+            font-size: 15px; font-weight: 700; letter-spacing: 0; text-transform: none;
+        }
+        .correction-input-row .input-group input {
+            font-size: 22px; padding: 14px 20px; font-weight: 700; text-align: center;
         }
         .correction-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0;
@@ -450,6 +523,20 @@
         }
         .correction-item .ci-note strong {
             font-weight: 700; color: var(--text);
+        }
+        .ci-delta-row {
+            display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600;
+        }
+        .ci-delta-badge {
+            display: inline-block; padding: 1px 6px; border-radius: 4px;
+            background: var(--green-light); color: var(--green);
+            font-size: 10px; font-weight: 700; letter-spacing: 0.02em;
+        }
+        .ci-delta-badge.ci-delta-neg {
+            background: var(--red-light); color: var(--red);
+        }
+        .ci-delta-badge.ci-delta-zero {
+            background: var(--surface2); color: var(--text-light);
         }
         .correction-item.warn .ci-value { color: var(--amber); }
         .correction-item.danger .ci-value { color: var(--red); }
@@ -592,6 +679,26 @@
         [data-theme="dark"] .seesaw-popover {
             background: var(--surface); border-color: #a78bfa;
             box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+        }
+        .wblr-popover {
+            display: none; position: fixed; z-index: 9999;
+            background: var(--surface); color: var(--text);
+            border: 1.5px solid var(--accent); border-radius: var(--radius-sm);
+            padding: 14px 16px; max-width: 360px; width: 90vw;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.18);
+            font-size: 12px; line-height: 1.65;
+        }
+        .wblr-popover.visible { display: block; }
+        .wblr-popover .pop-title {
+            font-size: 11px; font-weight: 700; text-transform: uppercase;
+            color: var(--accent); margin-bottom: 6px; letter-spacing: 0.5px;
+        }
+        .wblr-popover ul { margin: 6px 0 0; padding-left: 18px; }
+        .wblr-popover li { margin-bottom: 4px; }
+        .wblr-popover .pop-close {
+            position: absolute; top: 6px; right: 8px;
+            background: none; border: none; font-size: 16px;
+            color: var(--text-light); cursor: pointer; line-height: 1;
         }
 
         /* ── STEP CARDS ── */
@@ -1070,6 +1177,49 @@
     <div id="phase2-section" style="display:none">
         <div class="correction-card">
             <div class="section-title">Planificación de corrección — Método Mikulicz</div>
+            <details class="feucht-panel" id="feucht-panel">
+                <summary>Objetivo por zonas de Feucht (opcional)</summary>
+                <div class="feucht-content">
+                    <div class="kl-toggles" id="kl-toggles">
+                        <button class="kl-btn" data-kl="12" onclick="selKL(12)">
+                            <span class="kl-label">Leve</span>
+                            <span class="kl-desc">KL I–II</span>
+                        </button>
+                        <button class="kl-btn" data-kl="3" onclick="selKL(3)">
+                            <span class="kl-label">Moderada</span>
+                            <span class="kl-desc">KL III</span>
+                        </button>
+                        <button class="kl-btn" data-kl="4" onclick="selKL(4)">
+                            <span class="kl-label">Grave</span>
+                            <span class="kl-desc">KL IV</span>
+                        </button>
+                    </div>
+                    <div class="feucht-zone-bar" id="feucht-bar">
+                        <div class="fz fz-green"></div>
+                        <div class="fz fz-blue"></div>
+                        <div class="fz fz-red"></div>
+                    </div>
+                    <div class="feucht-zone-labels">
+                        <span class="fzl-header"><a href="#" class="wblr-link" onclick="mostrarWBLR(event)">WBLR</a></span><span>50–55%</span><span>55–60%</span><span>60–65%</span>
+                    </div>
+                    <div class="feucht-zone-refs">
+                        <span>Medial a la espina lateral</span>
+                        <span>Por la punta de la espina lateral</span>
+                        <span>Lateral a la espina lateral</span>
+                    </div>
+                    <div class="feucht-row">
+                        <div class="input-group">
+                            <label>WBL objetivo</label>
+                            <div class="input-suffix-wrap"><input type="number" id="inp-wbl" min="50" max="70" step="0.5" value="" placeholder="—" inputmode="decimal"><span class="input-suffix">%</span></div>
+                        </div>
+                        <div class="input-group">
+                            <label>Anchura platillo (mm)</label>
+                            <input type="number" id="inp-plateau" min="50" max="100" step="1" value="75" inputmode="numeric">
+                        </div>
+                    </div>
+                    <div class="feucht-result" id="feucht-result"></div>
+                </div>
+            </details>
             <div class="correction-input-row">
                 <div class="input-group" style="margin-bottom:0">
                     <label>HKA objetivo (grados)</label>
@@ -1129,6 +1279,14 @@
         <p>Cuando el JLCA es elevado (>2°), parte de la desviación es <strong>intra-articular</strong> — por desgaste cartilaginoso asimétrico y/o laxitud ligamentosa.</p>
         <p>Al corregir el eje mecánico con una osteotomía, la carga se redistribuye: el compartimento colapsado se descarga y el JLCA <strong>se reduce espontáneamente</strong>. Es como un balancín: al mover un lado (hueso), el otro se mueve solo (articulación).</p>
         <p>Sin anticiparlo, la corrección real sería mayor que la planificada → <strong>sobrecorrección en valgo</strong>. Micicoi propone restar (JLCA−2)/2 para compensar este efecto.</p>
+    </div>
+    <div id="wblr-popover" class="wblr-popover">
+        <button class="pop-close" onclick="cerrarWBLR()">&times;</button>
+        <div class="pop-title">Porcentaje de carga (Weight Bearing Line Ratio – WBLR)</div>
+        <ul>
+            <li>Se mide el ancho de la superficie articular proximal de la tibia.</li>
+            <li>Se calcula el porcentaje desde el margen medial por el que pasa la línea de Mikulicz.</li>
+        </ul>
     </div>
 </div>
 
@@ -1761,7 +1919,7 @@ function renderPhase1() {
         <div class="result-box"><div class="result-label">Severidad</div><div class="result-value" style="color:${sevColorVar}">${clasificacion.severidad}</div><div class="result-sublabel" style="color:${sevColorVar}">${Math.abs(mhka).toFixed(1)}° de desviación</div></div>
         <div class="result-box"><div class="result-label">Intra-articular</div><div class="result-value">${akuma.iadPct}%</div><div class="result-sublabel" style="color:var(--amber)">JLCA ${_jlca}°</div></div>
         <div class="result-box"><div class="result-label">Extra-articular</div><div class="result-value">${akuma.eadPct}%</div><div class="result-sublabel" style="color:var(--blue)">${eadLabel}</div></div>
-        <div class="result-box"><div class="result-label">CPAK</div><div class="result-value">Tipo ${cpak.type}</div><div class="result-sublabel">${cpak.hkaCat === 'Neutral' ? 'Neutro' : cpak.hkaCat === 'Varus' ? 'Varo' : 'Valgo'} · ${cpak.jloCat === 'Neutral' ? 'JLO Neutro' : cpak.jloCat}</div><a class="cpak-link" href="${cpakUrl}" target="_blank" title="Abrir calculadora CPAK"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="12" y2="18"/><rect x="8" y="5" width="8" height="3" rx="0.5"/></svg>CPAK</a></div>
+        <div class="result-box cpak-box"><div class="result-label">CPAK</div><div class="result-value">Tipo ${cpak.type}</div><div class="result-sublabel">${cpak.hkaCat === 'Neutral' ? 'Neutro' : cpak.hkaCat === 'Varus' ? 'Varo' : 'Valgo'} · ${cpak.jloCat === 'Neutral' ? 'JLO Neutro' : cpak.jloCat}</div><a class="cpak-link" href="${cpakUrl}" target="_blank" title="Abrir calculadora CPAK"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="12" y2="18"/><rect x="8" y="5" width="8" height="3" rx="0.5"/></svg>CPAK</a></div>
         <div class="result-box highlight" style="grid-column:1/-1"><div class="result-label">Indicación</div><div class="result-value" style="font-size:22px">${diag.recoName}</div><div class="result-sublabel">${diag.recoVariant ? diag.recoVariant.split('(')[0].trim() : ''}</div></div>
     `;
 
@@ -1842,6 +2000,9 @@ function renderPhase1() {
     document.getElementById('phase1-section').classList.add('visible');
     document.getElementById('phase2-section').style.display = '';
     document.getElementById('phase1-pdf-row').style.display = '';
+    // Reset previous correction results (new case = new correction)
+    document.getElementById('correction-results').style.display = 'none';
+    document.getElementById('explanation-card').style.display = 'none';
     _hasCalculated = true;
 }
 
@@ -1856,7 +2017,7 @@ function onPostopEdit() {
 
     const mptaNew = parseFloat(mptaEl.value);
     const ldfaNew = parseFloat(ldfaEl.value);
-    const tibW = parseFloat(tibwEl.value) || TIBIAL_WIDTH;
+    const tibW = parseFloat(tibwEl.value) || 0;
     if (isNaN(mptaNew) || isNaN(ldfaNew)) return;
 
     // JLO postop
@@ -1867,12 +2028,38 @@ function onPostopEdit() {
     const hka = mptaNew - ldfaNew + 180;
     document.getElementById('ci-hka').textContent = hka.toFixed(1) + '°';
 
-    // Altura cuña
+    // Delta badges
+    const fmtD = d => (d >= 0 ? '+' : '') + d.toFixed(1) + '°';
+    const dMPTA = mptaNew - window._postopCtx.mmptaOrig;
+    const dLDFA = ldfaNew - window._postopCtx.mldfaOrig;
+    const badgeMPTA = document.getElementById('ci-delta-mmpta');
+    const badgeLDFA = document.getElementById('ci-delta-mldfa');
+    if (badgeMPTA) {
+        badgeMPTA.textContent = fmtD(dMPTA);
+        badgeMPTA.classList.toggle('ci-delta-zero', Math.abs(dMPTA) < 0.05);
+        badgeMPTA.classList.toggle('ci-delta-neg', dMPTA < -0.05);
+    }
+    if (badgeLDFA) {
+        badgeLDFA.textContent = fmtD(dLDFA);
+        badgeLDFA.classList.toggle('ci-delta-zero', Math.abs(dLDFA) < 0.05);
+        badgeLDFA.classList.toggle('ci-delta-neg', dLDFA < -0.05);
+    }
+
+    // Altura cuña — solo si el usuario ha introducido anchura tibial
     const tibCorrecAngle = Math.abs(mptaNew - window._postopCtx.mmptaOrig);
-    const wedge = tibW * Math.tan(tibCorrecAngle * Math.PI / 180);
-    document.getElementById('ci-wedge').textContent = wedge.toFixed(1) + ' mm';
+    const wedgeEl = document.getElementById('ci-wedge');
     const formulaEl = document.getElementById('ci-wedge-formula');
-    if (formulaEl) formulaEl.textContent = `${tibW} × tan(${tibCorrecAngle.toFixed(1)}°)`;
+    const tibwRaw = document.getElementById('ci-tibwidth').value;
+    if (tibwRaw && !isNaN(tibW) && tibW > 0) {
+        const wedge = tibW * Math.tan(tibCorrecAngle * Math.PI / 180);
+        wedgeEl.textContent = wedge.toFixed(1) + ' mm';
+        wedgeEl.style.cssText = '';
+        if (formulaEl) formulaEl.textContent = `${tibW} × tan(${tibCorrecAngle.toFixed(1)}°)`;
+    } else {
+        wedgeEl.textContent = '—';
+        wedgeEl.style.cssText = 'color:var(--text-light);font-size:13px';
+        if (formulaEl) formulaEl.textContent = '';
+    }
 
     // Actualizar clases warn/danger
     const mpBox = document.getElementById('ci-box-mmpta');
@@ -1885,6 +2072,57 @@ function onPostopEdit() {
     if (jlo > 5) jloBox.classList.add('danger');
     else if (jlo > 4) jloBox.classList.add('warn');
 }
+
+// ─────────────────────────────────────────────
+//  FEUCHT ZONES — WBL% → HKA objetivo
+// ─────────────────────────────────────────────
+const FEUCHT_ZONES = [
+    { kl: [12],   label: 'Leve (KL I–II)',    wblMin: 50, wblMax: 55, zone: 'green' },
+    { kl: [3],    label: 'Moderada (KL III)',  wblMin: 55, wblMax: 60, zone: 'blue' },
+    { kl: [4],    label: 'Grave (KL IV)',      wblMin: 60, wblMax: 65, zone: 'red' }
+];
+
+function selKL(kl) {
+    document.querySelectorAll('.kl-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector(`.kl-btn[data-kl="${kl}"]`).classList.add('active');
+    const fz = FEUCHT_ZONES.find(z => z.kl.includes(kl));
+    const mid = (fz.wblMin + fz.wblMax) / 2;
+    document.getElementById('inp-wbl').value = mid;
+    // Highlight zone bar
+    document.querySelectorAll('.feucht-zone-bar .fz').forEach(el => el.classList.remove('active'));
+    document.querySelector(`.fz-${fz.zone}`).classList.add('active');
+    calcFeucht();
+}
+
+function calcFeucht() {
+    const wbl = parseFloat(document.getElementById('inp-wbl').value);
+    const plateau = parseFloat(document.getElementById('inp-plateau').value) || 75;
+    const resultEl = document.getElementById('feucht-result');
+    if (isNaN(wbl) || wbl < 50 || wbl > 70) { resultEl.style.display = 'none'; return; }
+    // Posicion del WBL desde borde medial en mm
+    const wbl_mm = wbl / 100 * plateau;
+    // Desplazamiento lateral desde centro (50%)
+    const desp_mm = (wbl - 50) / 100 * plateau;
+    // Approximation: ~0.7° valgo por cada mm de desplazamiento lateral
+    const hka = 180 + desp_mm * 0.7;
+    document.getElementById('inp-target').value = hka.toFixed(1);
+    resultEl.innerHTML = `WBL ${wbl}% × ${plateau} mm = <strong>${wbl_mm.toFixed(1)} mm</strong> desde borde medial → desp. lateral ${desp_mm.toFixed(1)} mm → <strong>HKA objetivo ≈ ${hka.toFixed(1)}°</strong>`;
+    resultEl.style.display = 'block';
+}
+
+// Listeners para recalcular al cambiar WBL% o anchura platillo
+document.getElementById('inp-wbl').addEventListener('input', function() {
+    // Deselect KL buttons when manual WBL edit
+    document.querySelectorAll('.kl-btn').forEach(b => b.classList.remove('active'));
+    // Update zone bar highlight
+    const wbl = parseFloat(this.value);
+    document.querySelectorAll('.feucht-zone-bar .fz').forEach(el => el.classList.remove('active'));
+    if (wbl >= 50 && wbl < 55) document.querySelector('.fz-green').classList.add('active');
+    else if (wbl >= 55 && wbl < 60) document.querySelector('.fz-blue').classList.add('active');
+    else if (wbl >= 60 && wbl <= 65) document.querySelector('.fz-red').classList.add('active');
+    calcFeucht();
+});
+document.getElementById('inp-plateau').addEventListener('input', calcFeucht);
 
 // ─────────────────────────────────────────────
 //  FASE 2: CORRECCIÓN POSTOPERATORIA
@@ -1939,11 +2177,15 @@ function onCalcularCorreccion() {
     const mpClr = correc.targetMPTA > 95 ? 'danger' : correc.targetMPTA > 93 ? 'warn' : '';
     const jloClr = correc.jloPostop > 5 ? 'danger' : correc.jloPostop > 4 ? 'warn' : '';
     const hkaResultante = correc.targetMPTA - correc.targetLDFA + 180;
+    const deltaMPTA = correc.targetMPTA - mmpta;
+    const deltaLDFA = correc.targetLDFA - mldfa;
+    const fmtDelta = d => (d >= 0 ? '+' : '') + d.toFixed(1) + '°';
+    const deltaClass = d => Math.abs(d) < 0.05 ? 'ci-delta-zero' : d < 0 ? 'ci-delta-neg' : '';
     document.getElementById('correction-grid').innerHTML = `
-        <div class="correction-item ${mpClr}" id="ci-box-mmpta"><div class="ci-label">mMPTA postop</div><div class="ci-value"><input type="number" class="ci-input" id="ci-mmpta" value="${correc.targetMPTA.toFixed(1)}" step="0.5" inputmode="decimal">°</div><div class="ci-note">Actual: <strong>${mmpta}°</strong> · Límite: <strong>&lt;95°</strong></div></div>
-        <div class="correction-item" id="ci-box-mldfa"><div class="ci-label">mLDFA postop</div><div class="ci-value"><input type="number" class="ci-input" id="ci-mldfa" value="${correc.targetLDFA.toFixed(1)}" step="0.5" inputmode="decimal">°</div><div class="ci-note">Actual: <strong>${mldfa}°</strong> · Límite: <strong>84-90°</strong></div></div>
+        <div class="correction-item ${mpClr}" id="ci-box-mmpta"><div class="ci-label">mMPTA postop</div><div class="ci-value"><input type="number" class="ci-input" id="ci-mmpta" value="${correc.targetMPTA.toFixed(1)}" step="0.5" inputmode="decimal">°</div><div class="ci-note"><span class="ci-delta-row">${mmpta}° <span class="ci-delta-badge ${deltaClass(deltaMPTA)}" id="ci-delta-mmpta">${fmtDelta(deltaMPTA)}</span> ${correc.targetMPTA.toFixed(1)}°</span><br>Límite: <strong>&lt;95°</strong></div></div>
+        <div class="correction-item" id="ci-box-mldfa"><div class="ci-label">mLDFA postop</div><div class="ci-value"><input type="number" class="ci-input" id="ci-mldfa" value="${correc.targetLDFA.toFixed(1)}" step="0.5" inputmode="decimal">°</div><div class="ci-note"><span class="ci-delta-row">${mldfa}° <span class="ci-delta-badge ${deltaClass(deltaLDFA)}" id="ci-delta-mldfa">${fmtDelta(deltaLDFA)}</span> ${correc.targetLDFA.toFixed(1)}°</span><br>Límite: <strong>84-90°</strong></div></div>
         <div class="correction-item ${jloClr}" id="ci-box-jlo"><div class="ci-label">JLO postop</div><div class="ci-value" id="ci-jlo">${correc.jloPostop.toFixed(1)}°</div><div class="ci-note">Límite: <strong>&lt;5°</strong></div></div>
-        <div class="correction-item" id="ci-box-wedge"><div class="ci-label">Altura cuña</div><div class="ci-value" id="ci-wedge">${correc.wedgeHeight.toFixed(1)} mm</div><div class="ci-note"><span id="ci-wedge-formula" style="font-size:10px;color:var(--text-muted)">${TIBIAL_WIDTH} × tan(${correc.tibialCorrecAngle.toFixed(1)}°)</span><br>Anchura tibial: <input type="number" class="ci-input-sm" id="ci-tibwidth" value="${TIBIAL_WIDTH}" step="1" inputmode="numeric"> mm <span style="font-size:10px;opacity:0.6">✏️</span></div></div>
+        <div class="correction-item" id="ci-box-wedge"><div class="ci-label">Altura cuña</div><div class="ci-value" id="ci-wedge" style="color:var(--text-light);font-size:13px">—</div><div class="ci-note"><span id="ci-wedge-formula" style="font-size:10px;color:var(--text-muted)"></span>Anchura tibial: <input type="number" class="ci-input-sm" id="ci-tibwidth" value="" placeholder="mm" step="1" inputmode="numeric"> mm</div></div>
         <div class="correction-hka-row" id="ci-box-hka"><div class="ci-label">HKA resultante</div><div class="ci-value" id="ci-hka">${hkaResultante.toFixed(1)}°</div></div>
     `;
 
@@ -1996,6 +2238,12 @@ analysisInputs.forEach(id => {
 function onLimpiar() {
     analysisInputs.forEach(id => { document.getElementById(id).value = ''; });
     document.getElementById('inp-target').value = 180;
+    document.getElementById('inp-wbl').value = '';
+    document.getElementById('inp-plateau').value = 75;
+    document.getElementById('feucht-result').style.display = 'none';
+    document.querySelectorAll('.kl-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.feucht-zone-bar .fz').forEach(el => el.classList.remove('active'));
+    document.getElementById('feucht-panel').removeAttribute('open');
     document.getElementById('phase1-section').classList.remove('visible');
     document.getElementById('phase2-section').style.display = 'none';
     document.getElementById('correction-results').style.display = 'none';
@@ -2023,6 +2271,10 @@ function cargarEjemplo(idx) {
     document.getElementById('inp-jlca').value = ej.jlca;
     document.getElementById('inp-target').value = 180;
     document.getElementById('dropdown-ej').classList.remove('open');
+    // Reset correction section from previous case
+    document.getElementById('correction-results').style.display = 'none';
+    document.getElementById('phase2-section').style.display = 'none';
+    document.getElementById('explanation-card').style.display = 'none';
     renderPhase1();
     mostrarToast('Ejemplo cargado');
 }
@@ -2328,6 +2580,29 @@ document.addEventListener('click', (e) => {
     const pop = document.getElementById('seesaw-popover');
     if (pop.classList.contains('visible') && !pop.contains(e.target) && !e.target.classList.contains('seesaw-link')) {
         cerrarSeesaw();
+    }
+});
+
+function mostrarWBLR(event) {
+    event.preventDefault();
+    const pop = document.getElementById('wblr-popover');
+    const rect = event.target.getBoundingClientRect();
+    pop.classList.add('visible');
+    let top = rect.bottom + 8;
+    let left = rect.left;
+    if (top + 200 > window.innerHeight) top = rect.top - pop.offsetHeight - 8;
+    if (left + 360 > window.innerWidth) left = window.innerWidth - 370;
+    if (left < 10) left = 10;
+    pop.style.top = top + 'px';
+    pop.style.left = left + 'px';
+}
+function cerrarWBLR() {
+    document.getElementById('wblr-popover').classList.remove('visible');
+}
+document.addEventListener('click', (e) => {
+    const pop = document.getElementById('wblr-popover');
+    if (pop.classList.contains('visible') && !pop.contains(e.target) && !e.target.classList.contains('wblr-link')) {
+        cerrarWBLR();
     }
 });
 
