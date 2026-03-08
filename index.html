@@ -229,6 +229,12 @@
         .glossary-content dt { font-weight: 700; color: var(--accent); display: inline; }
         .glossary-content dd { display: inline; margin: 0; }
         .glossary-content dd::after { content: ''; display: block; margin-bottom: 2px; }
+        .ref-table { width: 100%; border-collapse: collapse; font-size: 11px; line-height: 1.5; }
+        .ref-table th { text-align: left; font-weight: 700; color: var(--accent); padding: 6px 8px; border-bottom: 2px solid var(--border); font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .ref-table td { padding: 6px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+        .ref-table td:first-child { font-weight: 700; color: var(--accent); white-space: nowrap; }
+        .ref-table .ref-warn { color: var(--amber); font-weight: 600; }
+        .ref-table .ref-danger { color: var(--red); font-weight: 600; }
 
         /* ── RESULTS BAR ── */
         .results-section { display: none; }
@@ -993,6 +999,9 @@
         [data-theme="dark"] .correction-card .section-title { color: var(--green); border-bottom-color: var(--green); }
         [data-theme="dark"] .glossary-content { background: #283244; }
         [data-theme="dark"] .glossary-content dt { color: var(--accent); }
+        [data-theme="dark"] .ref-table th { color: var(--accent); border-bottom-color: var(--border); }
+        [data-theme="dark"] .ref-table td { border-bottom-color: var(--border); }
+        [data-theme="dark"] .ref-table td:first-child { color: var(--accent); }
         [data-theme="dark"] .akuma-cond { background: #1e2a4a; color: #93c5fd; border-color: #60a5fa; }
         [data-theme="dark"] .akuma-top-node { background: #60a5fa; }
         [data-theme="dark"] .akuma-result-osteo { background: #1e3a5f; color: #93c5fd; border-color: #60a5fa; }
@@ -1044,11 +1053,17 @@
         <p>Análisis de alineación coronal del miembro inferior</p>
     </div>
 
-    <!-- ─── GLOSSARY ─── -->
-    <button class="glossary-toggle" id="btn-glossary" onclick="toggleGlossary()">
+    <!-- ─── GLOSSARY + REFERENCE ─── -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+    <button class="glossary-toggle" id="btn-glossary" onclick="toggleGlossary()" style="margin-bottom:0">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
         Glosario de siglas
     </button>
+    <button class="glossary-toggle" id="btn-refvalues" onclick="toggleRefValues()" style="margin-bottom:0">
+        <svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+        Valores normales
+    </button>
+    </div>
     <div class="glossary-content" id="glossary-content">
         <dl>
             <dt>mHKA</dt> <dd> — Ángulo mecánico cadera-rodilla-tobillo. Eje mecánico del miembro inferior. Negativo = varo, positivo = valgo.</dd>
@@ -1066,6 +1081,19 @@
             <dt>PPTA</dt> <dd> — Slope tibial posterior (Posterior Proximal Tibial Angle). Normal ~9° (rango 5-14°).</dd>
             <dt>UKA</dt> <dd> — Artroplastia unicompartimental de rodilla (Unicompartmental Knee Arthroplasty).</dd>
         </dl>
+    </div>
+    <div class="glossary-content" id="refvalues-content">
+        <table class="ref-table">
+            <thead><tr><th>Ángulo</th><th>Normal</th><th>Desviación</th><th>Implicación clínica</th></tr></thead>
+            <tbody>
+                <tr><td>mHKA</td><td>180° (±3°)</td><td>&lt;180° = varo<br>&gt;180° = valgo</td><td>Ángulo entre el eje mecánico del fémur y el eje mecánico de la tibia. 180° = ejes colineales. Desviación &gt;5° moderada, <span class="ref-danger">&gt;10° severa</span></td></tr>
+                <tr><td>mLDFA</td><td>85–90°<br>(media 87°)</td><td>&gt;90° = varo femoral<br>&lt;85° = valgo femoral</td><td>Ángulo lateral entre el eje mecánico femoral y la tangente a los cóndilos femorales distales. Si desviación <span class="ref-warn">&gt;3° respecto a 87°</span>, considerar DFO o DLO</td></tr>
+                <tr><td>mMPTA</td><td>84–90°<br>(media 87°)</td><td>&lt;84° = varo tibial<br>&gt;90° = valgo tibial</td><td>Ángulo medial entre el eje mecánico tibial y la tangente a la meseta tibial. Postop <span class="ref-danger">no debe superar 95°</span> (riesgo sobrecarga lateral)</td></tr>
+                <tr><td>JLCA</td><td>0–2°</td><td>&gt;2° = laxitud o desgaste</td><td>Ángulo entre la tangente a los cóndilos femorales y la tangente a la meseta tibial. Refleja desgaste articular y laxitud. <span class="ref-warn">&gt;4° moderadamente elevado</span>. <span class="ref-danger">&gt;6° contraindicación relativa para HTO aislada</span></td></tr>
+                <tr><td>PPTA</td><td>7–10°<br>(media ~9°)</td><td>Rango aceptable: 5–12°</td><td>Ángulo entre la tangente a la meseta tibial (sagital) y la perpendicular al eje mecánico tibial. <span class="ref-danger">&gt;12° riesgo re-rotura LCA</span>. &lt;5° puede limitar flexión. MOWHTO lo ↑, MCWHTO lo ↓</td></tr>
+                <tr><td>JLO</td><td>&lt;5°</td><td>&gt;5° = oblicuidad excesiva</td><td>Oblicuidad de la línea articular: |mMPTA − mLDFA|. Si <span class="ref-danger">&gt;5° tras osteotomía</span> → considerar DLO para distribuir corrección</td></tr>
+            </tbody>
+        </table>
     </div>
 
     <!-- ─── INPUT CARD ─── -->
@@ -2421,6 +2449,12 @@ document.addEventListener('click', function(e) {
 function toggleGlossary() {
     const content = document.getElementById('glossary-content');
     const btn = document.getElementById('btn-glossary');
+    content.classList.toggle('visible');
+    btn.classList.toggle('open');
+}
+function toggleRefValues() {
+    const content = document.getElementById('refvalues-content');
+    const btn = document.getElementById('btn-refvalues');
     content.classList.toggle('visible');
     btn.classList.toggle('open');
 }
