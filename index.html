@@ -274,15 +274,37 @@
         /* ── STEPPER ── */
         .phase-stepper {
             display: flex; align-items: center; justify-content: center;
-            gap: 0; margin-bottom: 20px; padding: 0 20px;
+            gap: 0; margin-bottom: 20px; padding: 10px 20px;
             animation: fadeInUp 0.6s ease-out 0.05s both;
+            position: sticky; top: 0; z-index: 50;
+            background: var(--bg);
+            transition: box-shadow 0.3s ease, padding 0.3s ease, transform 0.3s ease;
+        }
+        .phase-stepper.stuck {
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            padding: 6px 16px;
+            transform: scale(0.88);
+        }
+        .phase-stepper.stuck:hover {
+            transform: scale(1);
+            padding: 10px 20px;
+        }
+        .phase-stepper.stuck .stepper-step { font-size: 11px; padding: 6px 12px; }
+        .phase-stepper.stuck:hover .stepper-step { font-size: 12px; padding: 8px 16px; }
+        .phase-stepper.stuck .stepper-num { width: 20px; height: 20px; font-size: 10px; }
+        .phase-stepper.stuck:hover .stepper-num { width: 24px; height: 24px; font-size: 11px; }
+        .phase-stepper.stuck .stepper-line { width: 28px; }
+        .phase-stepper.stuck:hover .stepper-line { width: 40px; }
+        [data-theme="dark"] .phase-stepper.stuck {
+            box-shadow: 0 2px 12px rgba(0,0,0,0.3);
         }
         .stepper-step {
             display: flex; align-items: center; gap: 8px;
             padding: 8px 16px; border-radius: 999px;
             font-size: 12px; font-weight: 600; color: var(--text-light);
-            transition: all 0.3s ease;
+            cursor: pointer; transition: all 0.3s ease;
         }
+        .stepper-step:hover { background: var(--surface2); }
         .stepper-step .stepper-num {
             width: 24px; height: 24px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
@@ -2389,6 +2411,30 @@ function updateStepper(phase) {
         line.classList.add('active');
     }
 }
+
+// ─────────────────────────────────────────────
+//  STEPPER: CLICK NAVIGATION + STICKY SHADOW
+// ─────────────────────────────────────────────
+document.getElementById('step-1').addEventListener('click', () => {
+    const p1 = document.getElementById('phase1-section');
+    if (p1.classList.contains('visible')) {
+        p1.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+});
+document.getElementById('step-2').addEventListener('click', () => {
+    const p2 = document.getElementById('phase2-section');
+    if (p2.style.display !== 'none') {
+        p2.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+});
+
+// Shadow when stuck
+const stepperEl = document.getElementById('phase-stepper');
+const stepperObserver = new IntersectionObserver(
+    ([e]) => stepperEl.classList.toggle('stuck', e.intersectionRatio < 1),
+    { threshold: [1], rootMargin: '-1px 0px 0px 0px' }
+);
+stepperObserver.observe(stepperEl);
 
 // ─────────────────────────────────────────────
 //  FASE 1: ANÁLISIS EN TIEMPO REAL
