@@ -300,12 +300,12 @@
             grid-column: 1; grid-row: 1;
         }
         .comp-card-label {
-            font-size: 11px; font-weight: 700; color: var(--text-light);
-            text-transform: uppercase; letter-spacing: 0.5px;
+            font-size: 13px; font-weight: 700; color: var(--text);
+            letter-spacing: 0.3px;
         }
         .comp-card-angle {
-            font-size: 10px; font-weight: 500; color: var(--text-light);
-            opacity: 0.7;
+            font-size: 11px; font-weight: 500; color: var(--text-light);
+            text-transform: uppercase; letter-spacing: 0.5px;
         }
         .comp-card-badge {
             font-size: 10px; font-weight: 700; padding: 2px 8px;
@@ -2357,10 +2357,11 @@ function renderPhase1() {
         }
     });
 
-    // Show phase 1, show phase 2 input, show phase 1 PDF button
+    // Show phase 1, show phase 1 PDF button
     document.getElementById('phase1-section').classList.add('visible');
-    document.getElementById('phase2-section').style.display = '';
     document.getElementById('phase1-pdf-row').style.display = '';
+    // Show phase 2 only if correction planning makes sense (not UKA-only)
+    document.getElementById('phase2-section').style.display = diag.recoClass === 'uka' ? 'none' : '';
     // Reset previous correction results (new case = new correction)
     document.getElementById('correction-results').style.display = 'none';
     document.getElementById('explanation-card').style.display = 'none';
