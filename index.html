@@ -9,9 +9,17 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Knee Align">
-    <meta name="theme-color" content="#1a3a5c">
+    <meta name="theme-color" id="meta-theme" content="#1a3a5c">
     <meta name="description" content="Knee Align — Análisis de alineación coronal de rodilla con algoritmo AKUMA/AKULA, diagnóstico diferencial y método Micicoi">
-
+    <!-- Open Graph -->
+    <meta property="og:title" content="Knee Align · COT" />
+    <meta property="og:description" content="Analisis de alineacion coronal de rodilla con algoritmo AKUMA/AKULA, diagnostico diferencial y metodo Micicoi." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://jmacot.github.io/knee-align/" />
+    <meta property="og:image" content="https://jmacot.github.io/knee-align/icon.svg" />
+    <meta name="twitter:card" content="summary" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:wght@600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
@@ -1204,6 +1212,12 @@
             .akuma-chart { margin-left: -16px; margin-right: -16px; padding: 0 16px; scrollbar-width: none; }
             .akuma-chart::-webkit-scrollbar { display: none; }
         }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1211,7 +1225,7 @@
     <a class="back-home" href="https://jmacot.github.io/" title="Volver al inicio">&#8592; Inicio</a>
 
     <div class="app-header">
-        <button class="theme-toggle" id="btn-theme" title="Cambiar tema"></button>
+        <button class="theme-toggle" id="btn-theme" title="Cambiar tema" aria-label="Cambiar a modo oscuro"></button>
         <h1>Knee Align</h1>
         <p>Análisis de alineación coronal del miembro inferior</p>
     </div>
@@ -1826,7 +1840,7 @@ function planificarCorreccion(mHKA, targetHKA, mLDFA, mMPTA, JLCA, recoName, esV
     const wedgeHeight = TIBIAL_WIDTH * Math.tan(tibialCorrecAngle * Math.PI / 180);
 
     if (targetMPTA > 95) safetyWarnings.push(`MPTA postop ${targetMPTA.toFixed(1)}° > 95°: riesgo elevado de sobrecarga lateral.`);
-    if (jloPostop > 5) safetyWarnings.push(`JLO postop ${jloPostop.toFixed(1)}° > 5°: oblicuidad de línea articular excesiva.`);
+    if (jloPostop > 5) safetyWarnings.push(`JLO postop ${jloPostop.toFixed(1)}° > 5°: oblicuidad de línea articular excesiva. mLDFA postop ${targetLDFA.toFixed(1)}° fuera del rango ${(targetMPTA - 5).toFixed(0)}-${(targetMPTA + 5).toFixed(0)}°.`);
 
     // Slope estimation (PPTA)
     // MOWHTO (apertura medial): slope aumenta ~2° por cada 10° corrección frontal
@@ -1953,8 +1967,14 @@ function generarExplicacion(data, clasificacion, akuma, diag, correc) {
 
     // Paso 5
     let paso5 = `Verificación de límites de seguridad postoperatorios:<br>`;
-    paso5 += `\u2022 mMPTA postop: ${v(correc.targetMPTA.toFixed(1) + '°', correc.targetMPTA > 95 ? 'red' : correc.targetMPTA > 93 ? 'amber' : 'green')} (límite: <95°)<br>`;
-    paso5 += `\u2022 mLDFA postop: ${v(correc.targetLDFA.toFixed(1) + '°', (correc.targetLDFA < 84 || correc.targetLDFA > 90) ? 'amber' : 'green')} (normal: 84-90°)<br>`;
+    const mptaUp5 = correc.targetMPTA !== data.mmpta ? correc.targetMPTA > data.mmpta : akuma.esVaro;
+    const mptaLim5 = mptaUp5 ? Math.min(95, correc.targetLDFA + 5) : correc.targetLDFA - 5;
+    const mptaOk5 = mptaUp5 ? correc.targetMPTA <= mptaLim5 : correc.targetMPTA >= mptaLim5;
+    paso5 += `\u2022 mMPTA postop: ${v(correc.targetMPTA.toFixed(1) + '°', correc.targetMPTA > 95 ? 'red' : !mptaOk5 ? 'amber' : 'green')} (límite: ${mptaUp5 ? '<' : '>'}${mptaLim5.toFixed(0)}°)<br>`;
+    const ldfaUp5 = correc.targetLDFA !== data.mldfa ? correc.targetLDFA > data.mldfa : !akuma.esVaro;
+    const ldfaLim5 = ldfaUp5 ? correc.targetMPTA + 5 : correc.targetMPTA - 5;
+    const ldfaOk5 = ldfaUp5 ? correc.targetLDFA <= ldfaLim5 : correc.targetLDFA >= ldfaLim5;
+    paso5 += `\u2022 mLDFA postop: ${v(correc.targetLDFA.toFixed(1) + '°', !ldfaOk5 ? 'amber' : 'green')} (límite: ${ldfaUp5 ? '<' : '>'}${ldfaLim5.toFixed(0)}°)<br>`;
     paso5 += `\u2022 JLO postop: ${v(correc.jloPostop.toFixed(1) + '°', correc.jloPostop > 5 ? 'red' : correc.jloPostop > 4 ? 'amber' : 'green')} (límite: <5°)<br>`;
     paso5 += `\u2022 Corrección total: ${v(correc.correccion.toFixed(1) + '°', correc.correccion > 15 ? 'red' : correc.correccion > 12 ? 'amber' : 'green')} (límite: <15°)`;
     if (correc.safetyWarnings.length === 0) paso5 += `<br><br>${v('Todos los parámetros dentro de límites aceptables.', 'green')}`;
@@ -2606,10 +2626,22 @@ function onPostopEdit() {
     balanceCorrectionGrid();
 
     // Actualizar clases warn/danger
+    // Límite mMPTA: JLO<5° + tope absoluto 95°
     const mpBox = document.getElementById('ci-box-mmpta');
     mpBox.classList.remove('warn', 'danger');
+    const mptaJloLim = ctx.mptaUp ? Math.min(95, ldfaNew + 5) : ldfaNew - 5;
+    if (ctx.mptaUp ? mptaNew > mptaJloLim : mptaNew < mptaJloLim) mpBox.classList.add('warn');
     if (mptaNew > 95) mpBox.classList.add('danger');
-    else if (mptaNew > 93) mpBox.classList.add('warn');
+    const mptaLimitEl = document.getElementById('ci-mmpta-limit');
+    if (mptaLimitEl) mptaLimitEl.textContent = `${ctx.mptaUp ? '<' : '>'}${mptaJloLim.toFixed(0)}°`;
+
+    // Límite mLDFA: JLO<5° relativo a mMPTA actual
+    const ldfaBox = document.getElementById('ci-box-mldfa');
+    ldfaBox.classList.remove('warn', 'danger');
+    const ldfaJloLim = ctx.ldfaUp ? mptaNew + 5 : mptaNew - 5;
+    if (ctx.ldfaUp ? ldfaNew > ldfaJloLim : ldfaNew < ldfaJloLim) ldfaBox.classList.add('warn');
+    const ldfaLimitEl = document.getElementById('ci-mldfa-limit');
+    if (ldfaLimitEl) ldfaLimitEl.textContent = `${ctx.ldfaUp ? '<' : '>'}${ldfaJloLim.toFixed(0)}°`;
 
     const jloBox = document.getElementById('ci-box-jlo');
     jloBox.classList.remove('warn', 'danger');
@@ -2729,7 +2761,20 @@ function onCalcularCorreccion() {
     }
 
     // Correction grid — editable inputs for mMPTA, mLDFA, anchura tibial
-    const mpClr = correc.targetMPTA > 95 ? 'danger' : correc.targetMPTA > 93 ? 'warn' : '';
+    // Dirección de corrección: varo → mMPTA sube, mLDFA baja; valgus → inverso
+    // Si no hay cambio planificado, usar dirección clínica (esVaro)
+    const mptaUp = correc.targetMPTA !== mmpta ? correc.targetMPTA > mmpta : akuma.esVaro;
+    const ldfaUp = correc.targetLDFA !== mldfa ? correc.targetLDFA > mldfa : !akuma.esVaro;
+    // Límite mMPTA: JLO<5° + tope absoluto 95°
+    const mptaJloLimit = mptaUp ? Math.min(95, correc.targetLDFA + 5) : correc.targetLDFA - 5;
+    const mpClr = mptaUp
+        ? (correc.targetMPTA > 95 ? 'danger' : correc.targetMPTA > mptaJloLimit ? 'warn' : correc.targetMPTA > 93 ? 'warn' : '')
+        : (correc.targetMPTA < mptaJloLimit ? 'warn' : '');
+    // Límite mLDFA: JLO<5° relativo a mMPTA postop
+    const ldfaJloLimit = ldfaUp ? correc.targetMPTA + 5 : correc.targetMPTA - 5;
+    const ldfaClr = ldfaUp
+        ? (correc.targetLDFA > ldfaJloLimit ? 'warn' : '')
+        : (correc.targetLDFA < ldfaJloLimit ? 'warn' : '');
     const jloClr = correc.jloPostop > 5 ? 'danger' : correc.jloPostop > 4 ? 'warn' : '';
     // HKA resultante: el plan logra exactamente el objetivo;
     // desviaciones manuales del usuario se reflejan como deltas sobre targetRaw
@@ -2750,8 +2795,8 @@ function onCalcularCorreccion() {
     }
 
     document.getElementById('correction-grid').innerHTML = `
-        <div class="correction-item ${mpClr}" id="ci-box-mmpta"><div class="ci-label">mMPTA postop</div><div class="ci-value"><input type="number" class="ci-input" id="ci-mmpta" value="${correc.targetMPTA.toFixed(1)}" step="0.5" inputmode="decimal">°</div><div class="ci-note"><span class="ci-delta-row">${mmpta}° <span class="ci-delta-badge ${deltaClass(deltaMPTA)}" id="ci-delta-mmpta">${fmtDelta(deltaMPTA)}</span> ${correc.targetMPTA.toFixed(1)}°</span><br>Límite: <strong>&lt;95°</strong></div></div>
-        <div class="correction-item" id="ci-box-mldfa"><div class="ci-label">mLDFA postop</div><div class="ci-value"><input type="number" class="ci-input" id="ci-mldfa" value="${correc.targetLDFA.toFixed(1)}" step="0.5" inputmode="decimal">°</div><div class="ci-note"><span class="ci-delta-row">${mldfa}° <span class="ci-delta-badge ${deltaClass(deltaLDFA)}" id="ci-delta-mldfa">${fmtDelta(deltaLDFA)}</span> ${correc.targetLDFA.toFixed(1)}°</span><br>Límite: <strong>84-90°</strong></div></div>
+        <div class="correction-item ${mpClr}" id="ci-box-mmpta"><div class="ci-label">mMPTA postop</div><div class="ci-value"><input type="number" class="ci-input" id="ci-mmpta" value="${correc.targetMPTA.toFixed(1)}" step="0.5" inputmode="decimal">°</div><div class="ci-note"><span class="ci-delta-row">${mmpta}° <span class="ci-delta-badge ${deltaClass(deltaMPTA)}" id="ci-delta-mmpta">${fmtDelta(deltaMPTA)}</span> ${correc.targetMPTA.toFixed(1)}°</span><br>Límite: <strong id="ci-mmpta-limit">${mptaUp ? '&lt;' : '&gt;'}${mptaJloLimit.toFixed(0)}°</strong></div></div>
+        <div class="correction-item ${ldfaClr}" id="ci-box-mldfa"><div class="ci-label">mLDFA postop</div><div class="ci-value"><input type="number" class="ci-input" id="ci-mldfa" value="${correc.targetLDFA.toFixed(1)}" step="0.5" inputmode="decimal">°</div><div class="ci-note"><span class="ci-delta-row">${mldfa}° <span class="ci-delta-badge ${deltaClass(deltaLDFA)}" id="ci-delta-mldfa">${fmtDelta(deltaLDFA)}</span> ${correc.targetLDFA.toFixed(1)}°</span><br>Límite: <strong id="ci-mldfa-limit">${ldfaUp ? '&lt;' : '&gt;'}${ldfaJloLimit.toFixed(0)}°</strong></div></div>
         <div class="correction-item ${jloClr}" id="ci-box-jlo"><div class="ci-label">JLO postop</div><div class="ci-value" id="ci-jlo">${correc.jloPostop.toFixed(1)}°</div><div class="ci-note">Límite: <strong>&lt;5°</strong></div></div>
         <div class="correction-item" id="ci-box-plate" style="display:none"><div class="ci-label">Placa recomendada</div><div class="ci-value" id="ci-plate-val" style="color:var(--text-light);font-size:13px">—</div><div class="ci-note" id="ci-plate-note"></div></div>
         ${slopeHtml}
@@ -2760,7 +2805,7 @@ function onCalcularCorreccion() {
     `;
 
     // Store original preop values for wedge recalculation
-    window._postopCtx = { mmptaOrig: mmpta, mldfaOrig: mldfa, targetHKA: targetRaw, mptaPlanned: correc.targetMPTA, ldfaPlanned: correc.targetLDFA, ppta: ppta, tibVariant: correc.tibVariant, tibCorrecAngle: correc.tibialCorrecAngle };
+    window._postopCtx = { mmptaOrig: mmpta, mldfaOrig: mldfa, targetHKA: targetRaw, mptaPlanned: correc.targetMPTA, ldfaPlanned: correc.targetLDFA, ppta: ppta, tibVariant: correc.tibVariant, tibCorrecAngle: correc.tibialCorrecAngle, mptaUp, ldfaUp };
 
     balanceCorrectionGrid();
 
@@ -3461,12 +3506,17 @@ function mostrarToast(msg) {
 const btnTheme = document.getElementById('btn-theme');
 
 function applyTheme(dark) {
+    var metaTheme = document.getElementById('meta-theme');
     if (dark) {
         document.documentElement.setAttribute('data-theme', 'dark');
         btnTheme.textContent = '\u2600\uFE0F';
+        btnTheme.setAttribute('aria-label', 'Cambiar a modo claro');
+        if (metaTheme) metaTheme.setAttribute('content', '#0a1628');
     } else {
         document.documentElement.removeAttribute('data-theme');
         btnTheme.textContent = '\uD83C\uDF19';
+        btnTheme.setAttribute('aria-label', 'Cambiar a modo oscuro');
+        if (metaTheme) metaTheme.setAttribute('content', '#1a3a5c');
     }
     // Re-render D3 charts with new theme colors
     try { if (window._phase1) renderD3Bars(window._phase1.akuma, window._phase1.mldfa, window._phase1.mmpta); } catch(e) {}
