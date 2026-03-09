@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "knee-align",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "/Users/jma/Documents/Proyectos/knee-align", "-l", "8090"],
+      "port": 8090
+    }
+  ]
+}

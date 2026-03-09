@@ -384,9 +384,14 @@
             font-size: 11px; color: var(--text-muted); line-height: 1.5;
             grid-column: 1 / -1; margin-top: 2px;
         }
+        .summary-row {
+            display: flex; gap: 10px; margin-top: 8px;
+        }
+        .summary-row > .akuma-summary { flex: 1; min-width: 0; }
+        .summary-row > .telemetria-block { flex: 0 0 auto; }
         .akuma-summary {
             font-size: 13px; line-height: 1.7; color: var(--text-muted);
-            padding: 12px 16px; margin-top: 8px;
+            padding: 12px 16px;
             background: var(--accent-light); border-radius: var(--radius-sm);
             border-left: 3px solid var(--accent);
         }
@@ -400,6 +405,26 @@
         .akuma-summary .sum-dot {
             width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
             position: relative; top: -1px;
+        }
+
+        /* ── TELEMETRÍA (evolutivo) ── */
+        .telemetria-block {
+            padding: 10px 14px;
+            background: var(--surface2); border-radius: var(--radius-sm);
+            border: 1px solid var(--border-light);
+        }
+        .telemetria-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 4px;
+        }
+        .telemetria-title {
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.5px; color: var(--accent);
+        }
+        .telemetria-pre {
+            font-family: 'SF Mono', 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+            font-size: 11px; line-height: 1.6; color: var(--text);
+            white-space: pre-wrap; margin: 0;
         }
 
         /* ── INFO ROWS (legacy — used in other sections) ── */
@@ -465,6 +490,7 @@
                 margin-top: 4px;
             }
             .comp-card-desc { grid-column: 1; grid-row: 4; }
+            .summary-row { flex-direction: column; }
         }
 
         /* ── INFO TOOLTIP ── */
@@ -1371,7 +1397,19 @@
                 <div class="contrib-label">Contribución</div>
                 <div class="d3-chart-wrap" id="bar-tf"></div>
             </div>
-            <div id="akuma-summary" class="akuma-summary" style="display:none"></div>
+            <div class="summary-row" id="summary-row" style="display:none">
+            <div id="akuma-summary" class="akuma-summary"></div>
+            <div id="telemetria-block" class="telemetria-block">
+                <div class="telemetria-header">
+                    <span class="telemetria-title">Cálculos para evolutivo</span>
+                    <button class="btn-copy" onclick="copiarTelemetria()" style="padding:3px 8px;font-size:10px">
+                        <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                        Copiar
+                    </button>
+                </div>
+                <pre class="telemetria-pre" id="telemetria-text"></pre>
+            </div>
+            </div>
         </div>
 
         <!-- Diagnóstico Diferencial -->
@@ -2461,10 +2499,29 @@ function renderPhase1() {
             sumHtml += `<div class="sum-line"><span class="sum-dot" style="background:${theme.purple || '#8b5cf6'}"></span>Componente extra-articular: ${tibText}${sep}${femText}</div>`;
         }
         sumEl.innerHTML = sumHtml;
-        sumEl.style.display = '';
-    } else {
-        sumEl.style.display = 'none';
     }
+
+    // Telemetría para evolutivo — usar mHKA tal cual lo introduce el usuario (ej. 175°)
+    const telText = document.getElementById('telemetria-text');
+    if (akuma.GD > 0) {
+        let origen = '';
+        if (akuma.iadPct >= 60) origen = 'intraarticular';
+        else if (akuma.eadPct >= 60) origen = 'extraarticular';
+        else origen = 'mixto (intra y extraarticular)';
+        const tipoCapital = tipoDeformidad.charAt(0).toUpperCase() + tipoDeformidad.slice(1);
+        const lines = [
+            'Telemetría',
+            `· mHKA: ${mhkaRaw}°`,
+            `· mMPTA: ${_mmpta}°`,
+            `· mLDFA: ${_mldfa}°`,
+            `· JLCA: ${_jlca}°`,
+            `${tipoCapital} de ${gdVal}° de origen principalmente ${origen}`
+        ];
+        telText.textContent = lines.join('\n');
+    }
+
+    // Show/hide summary row
+    document.getElementById('summary-row').style.display = akuma.GD > 0 ? '' : 'none';
 
     // Recommendation — variant as clickable link for tooltip (only for osteotomy variants)
     const hasVariantInfo = /MOWHTO|MCWHTO|LCWDFO|MCWDFO/.test(diag.recoVariant);
@@ -2869,6 +2926,7 @@ function onLimpiar() {
     document.getElementById('correction-results').style.display = 'none';
     document.getElementById('explanation-card').style.display = 'none';
     document.getElementById('phase1-pdf-row').style.display = 'none';
+    document.getElementById('summary-row').style.display = 'none';
     resetAkumaHighlight();
     document.getElementById('btn-aplicar-akuma').disabled = true;
     // Reset algorithm name to default
@@ -2922,6 +2980,12 @@ function toggleRefValues() {
     const btn = document.getElementById('btn-refvalues');
     content.classList.toggle('visible');
     btn.classList.toggle('open');
+}
+
+function copiarTelemetria() {
+    const text = document.getElementById('telemetria-text').textContent;
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => mostrarToast('Telemetría copiada'));
 }
 
 function copiarResumen() {
