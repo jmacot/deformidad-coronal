@@ -510,6 +510,7 @@
         }
         .correction-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0;
+            align-items: start;
         }
         .correction-item {
             background: var(--surface2); border-radius: var(--radius-sm);
@@ -1762,6 +1763,9 @@ function generarExplicacion(data, clasificacion, akuma, diag, correc) {
         paso4 += arrowVisual('mLDFA', data.mldfa.toFixed(1), correc.targetLDFA.toFixed(1), femDelta.toFixed(1), '−', null);
     }
     paso4 += `Altura de cuña tibial estimada: ${TIBIAL_WIDTH}mm × tan(${correc.tibialCorrecAngle.toFixed(1)}°) = ${v(correc.wedgeHeight.toFixed(1) + ' mm', 'accent')}`;
+    if (correc.tibVariant === 'MOWHTO') {
+        paso4 += `<br><span style="font-size:12px;color:var(--text-muted)">En osteotomías de apertura, sumar el grosor de la sierra oscilante (estándar 1.27 mm) a la cuña ósea para obtener la apertura total necesaria (<a class="ref-link" href="articulos/Surgical strategy and complication management of osteotomy around the painful degenerative varus knee.pdf" target="_blank">Ollivier et al. KSSTA 2024</a>).</span>`;
+    }
     steps.push({ title: 'Planificación de la corrección', text: paso4 });
 
     // Paso 5
@@ -2135,6 +2139,23 @@ function getPlateRecHtml(wedgeMm) {
 }
 
 // ─────────────────────────────────────────────
+//  BALANCE GRID — sin huecos en blanco
+// ─────────────────────────────────────────────
+function balanceCorrectionGrid() {
+    const grid = document.getElementById('correction-grid');
+    if (!grid) return;
+    // Count visible items (exclude full-width HKA row)
+    const items = Array.from(grid.querySelectorAll('.correction-item'));
+    const visible = items.filter(el => el.style.display !== 'none');
+    // Reset all spans
+    visible.forEach(el => el.style.gridColumn = '');
+    // If odd number of visible items, last one spans full width
+    if (visible.length % 2 === 1) {
+        visible[visible.length - 1].style.gridColumn = '1 / -1';
+    }
+}
+
+// ─────────────────────────────────────────────
 //  RECÁLCULO EN TIEMPO REAL (inputs postop editables)
 // ─────────────────────────────────────────────
 function onPostopEdit() {
@@ -2178,20 +2199,49 @@ function onPostopEdit() {
     const tibCorrecAngle = Math.abs(mptaNew - window._postopCtx.mmptaOrig);
     const wedgeEl = document.getElementById('ci-wedge');
     const formulaEl = document.getElementById('ci-wedge-formula');
+    const breakdownEl = document.getElementById('ci-wedge-breakdown');
     const tibwRaw = document.getElementById('ci-tibwidth').value;
-    const plateEl = document.getElementById('ci-plate-rec');
+    const plateBox = document.getElementById('ci-box-plate');
+    const plateVal = document.getElementById('ci-plate-val');
+    const plateNote = document.getElementById('ci-plate-note');
+    const sierraEl = document.getElementById('ci-sierra');
+    const sierraVal = sierraEl ? parseFloat(sierraEl.value) || 0 : 0;
+    const isOpening = ctx.tibVariant === 'MOWHTO';
     if (tibwRaw && !isNaN(tibW) && tibW > 0) {
-        const wedge = tibW * Math.tan(tibCorrecAngle * Math.PI / 180);
-        wedgeEl.textContent = wedge.toFixed(1) + ' mm';
+        const wedgeBone = tibW * Math.tan(tibCorrecAngle * Math.PI / 180);
+        const wedgeTotal = isOpening ? wedgeBone + sierraVal : wedgeBone;
+        wedgeEl.textContent = (isOpening && sierraVal > 0 ? wedgeTotal : wedgeBone).toFixed(1) + ' mm';
         wedgeEl.style.cssText = '';
-        if (formulaEl) formulaEl.textContent = `${tibW} × tan(${tibCorrecAngle.toFixed(1)}°)`;
-        if (plateEl) plateEl.innerHTML = getPlateRecHtml(wedge);
+        if (formulaEl) formulaEl.textContent = `${tibW} × tan(${tibCorrecAngle.toFixed(1)}°) = ${wedgeBone.toFixed(1)} mm\n`;
+        if (breakdownEl && isOpening && sierraVal > 0) {
+            breakdownEl.style.display = 'block';
+            breakdownEl.textContent = '';
+            const t1 = document.createTextNode('Cuña ósea: ' + wedgeBone.toFixed(1) + ' mm + sierra: ' + sierraVal.toFixed(2) + ' mm = ');
+            const strong = document.createElement('strong');
+            strong.style.color = 'var(--accent)';
+            strong.textContent = wedgeTotal.toFixed(1) + ' mm';
+            const t2 = document.createTextNode(' apertura total');
+            breakdownEl.appendChild(t1);
+            breakdownEl.appendChild(strong);
+            breakdownEl.appendChild(t2);
+        } else if (breakdownEl) {
+            breakdownEl.style.display = 'none';
+        }
+        if (plateBox) {
+            const plate = wedgeTotal < 8 ? '3+3' : '4+4';
+            plateVal.textContent = plate + ' orificios';
+            plateVal.style.cssText = '';
+            plateNote.innerHTML = `Cuña ${wedgeTotal < 8 ? '<' : '≥'} 8 mm<div class="ci-plate-ref">Ollivier et al. <em>Orthop Traumatol Surg Res</em> 2024</div>`;
+            plateBox.style.display = '';
+        }
     } else {
         wedgeEl.textContent = '—';
         wedgeEl.style.cssText = 'color:var(--text-light);font-size:13px';
         if (formulaEl) formulaEl.textContent = '';
-        if (plateEl) plateEl.innerHTML = '';
+        if (breakdownEl) breakdownEl.style.display = 'none';
+        if (plateBox) plateBox.style.display = 'none';
     }
+    balanceCorrectionGrid();
 
     // Actualizar clases warn/danger
     const mpBox = document.getElementById('ci-box-mmpta');
@@ -2341,17 +2391,21 @@ function onCalcularCorreccion() {
         <div class="correction-item ${mpClr}" id="ci-box-mmpta"><div class="ci-label">mMPTA postop</div><div class="ci-value"><input type="number" class="ci-input" id="ci-mmpta" value="${correc.targetMPTA.toFixed(1)}" step="0.5" inputmode="decimal">°</div><div class="ci-note"><span class="ci-delta-row">${mmpta}° <span class="ci-delta-badge ${deltaClass(deltaMPTA)}" id="ci-delta-mmpta">${fmtDelta(deltaMPTA)}</span> ${correc.targetMPTA.toFixed(1)}°</span><br>Límite: <strong>&lt;95°</strong></div></div>
         <div class="correction-item" id="ci-box-mldfa"><div class="ci-label">mLDFA postop</div><div class="ci-value"><input type="number" class="ci-input" id="ci-mldfa" value="${correc.targetLDFA.toFixed(1)}" step="0.5" inputmode="decimal">°</div><div class="ci-note"><span class="ci-delta-row">${mldfa}° <span class="ci-delta-badge ${deltaClass(deltaLDFA)}" id="ci-delta-mldfa">${fmtDelta(deltaLDFA)}</span> ${correc.targetLDFA.toFixed(1)}°</span><br>Límite: <strong>84-90°</strong></div></div>
         <div class="correction-item ${jloClr}" id="ci-box-jlo"><div class="ci-label">JLO postop</div><div class="ci-value" id="ci-jlo">${correc.jloPostop.toFixed(1)}°</div><div class="ci-note">Límite: <strong>&lt;5°</strong></div></div>
+        <div class="correction-item" id="ci-box-plate" style="display:none"><div class="ci-label">Placa recomendada</div><div class="ci-value" id="ci-plate-val" style="color:var(--text-light);font-size:13px">—</div><div class="ci-note" id="ci-plate-note"></div></div>
         ${slopeHtml}
-        <div class="correction-item" id="ci-box-wedge"><div class="ci-label">Altura cuña</div><div class="ci-value" id="ci-wedge" style="color:var(--text-light);font-size:13px">—</div><div class="ci-note"><span id="ci-wedge-formula" style="font-size:10px;color:var(--text-muted)"></span>Anchura tibial: <input type="number" class="ci-input-sm" id="ci-tibwidth" value="" placeholder="mm" step="1" inputmode="numeric"> mm<br><span style="font-size:10px;color:var(--text-light)">&#9794; 70-80 mm / &#9792; 60-70 mm</span><div class="ci-plate-rec" id="ci-plate-rec"></div></div></div>
+        <div class="correction-item" id="ci-box-wedge"><div class="ci-label">Altura cuña</div><div class="ci-value" id="ci-wedge" style="color:var(--text-light);font-size:13px">—</div><div class="ci-note"><span id="ci-wedge-formula" style="font-size:10px;color:var(--text-muted)"></span><span id="ci-wedge-breakdown" style="display:none;font-size:10px;line-height:1.6;margin:2px 0 4px;color:var(--text-muted)"></span>Anchura tibial: <input type="number" class="ci-input-sm" id="ci-tibwidth" value="" placeholder="mm" step="1" inputmode="numeric"> mm<br><span style="font-size:10px;color:var(--text-light)">&#9794; 70-80 mm / &#9792; 60-70 mm</span>${correc.tibVariant === 'MOWHTO' ? `<br>Grosor sierra: <input type="number" class="ci-input-sm" id="ci-sierra" value="1.27" placeholder="mm" step="0.01" inputmode="decimal"> mm<br><span style="font-size:10px;color:var(--text-light)">Estándar 1.27 mm (rango 1.0–2.2)</span>` : ''}</div></div>
         <div class="correction-hka-row" id="ci-box-hka"><div class="ci-label">HKA resultante</div><div class="ci-value" id="ci-hka">${hkaResultante.toFixed(1)}°</div></div>
     `;
 
     // Store original preop values for wedge recalculation
     window._postopCtx = { mmptaOrig: mmpta, mldfaOrig: mldfa, targetHKA: targetRaw, mptaPlanned: correc.targetMPTA, ldfaPlanned: correc.targetLDFA, ppta: ppta, tibVariant: correc.tibVariant, tibCorrecAngle: correc.tibialCorrecAngle };
 
+    balanceCorrectionGrid();
+
     // Attach listeners to editable inputs
-    ['ci-mmpta', 'ci-mldfa', 'ci-tibwidth'].forEach(id => {
-        document.getElementById(id).addEventListener('input', onPostopEdit);
+    ['ci-mmpta', 'ci-mldfa', 'ci-tibwidth', 'ci-sierra'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', onPostopEdit);
     });
 
     // Safety warnings
@@ -2591,14 +2645,14 @@ function generarPDF(soloAnalisis) {
                     { text: `ANÁLISIS ${algoName}`, style: 'secLabel' },
                     {
                         table: {
-                            widths: [55, '*'],
+                            widths: [145, '*'],
                             body: [
-                                [{ text: 'GD', style: 'paramKey' }, { text: akuma.GD.toFixed(1) + '°', style: 'paramVal' }],
-                                [{ text: 'IAD', style: 'paramKey' }, { text: akuma.iadPct + '%', style: 'paramVal' }],
-                                [{ text: 'EAD', style: 'paramKey' }, { text: akuma.eadPct + '%', style: 'paramVal' }],
-                                [{ text: 'Tibial', style: 'paramKey' }, { text: akuma.tPct + '%', style: 'paramVal' }],
-                                [{ text: 'Femoral', style: 'paramKey' }, { text: akuma.fPct + '%', style: 'paramVal' }],
-                                [{ text: 'JLO', style: 'paramKey' }, { text: (mldfa - mmpta).toFixed(1) + '°', style: 'paramVal' }]
+                                [{ text: 'Deformidad global (GD)', style: 'paramKey' }, { text: akuma.GD.toFixed(1) + '°', style: 'paramVal' }],
+                                [{ text: 'Intra-articular (IAD%)', style: 'paramKey' }, { text: akuma.iadPct + '%', style: 'paramVal' }],
+                                [{ text: 'Extra-articular (EAD%)', style: 'paramKey' }, { text: akuma.eadPct + '%', style: 'paramVal' }],
+                                [{ text: 'Contribución tibial (T%)', style: 'paramKey' }, { text: akuma.tPct + '%', style: 'paramVal' }],
+                                [{ text: 'Contribución femoral (F%)', style: 'paramKey' }, { text: akuma.fPct + '%', style: 'paramVal' }],
+                                [{ text: 'Oblicuidad articular (JLO)', style: 'paramKey' }, { text: (mldfa - mmpta).toFixed(1) + '°', style: 'paramVal' }]
                             ]
                         },
                         layout: {
@@ -2798,10 +2852,14 @@ function generarPDF(soloAnalisis) {
         });
 
         // ── Secondary details row ──
+        const pdfSierraVal = correc.tibVariant === 'MOWHTO' ? 1.27 : 0;
+        const pdfWedgeTotal = correc.wedgeHeight + pdfSierraVal;
+        const pdfPlateWedge = correc.tibVariant === 'MOWHTO' ? pdfWedgeTotal : correc.wedgeHeight;
         const detailItems = [
             ['JLO postop', correc.jloPostop.toFixed(1) + '°'],
-            ['Altura cuña', correc.wedgeHeight.toFixed(1) + ' mm'],
-            ['Placa', correc.wedgeHeight < 8 ? '3+3 orificios' : '4+4 orificios']
+            ['Cuña ósea', correc.wedgeHeight.toFixed(1) + ' mm'],
+            ...(correc.tibVariant === 'MOWHTO' ? [['+ Sierra', pdfSierraVal.toFixed(2) + ' mm → ' + pdfWedgeTotal.toFixed(1) + ' mm total']] : []),
+            ['Placa', pdfPlateWedge < 8 ? '3+3 orificios' : '4+4 orificios']
         ];
 
         content.push({
