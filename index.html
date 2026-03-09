@@ -236,6 +236,55 @@
         .ref-table .ref-warn { color: var(--amber); font-weight: 600; }
         .ref-table .ref-danger { color: var(--red); font-weight: 600; }
 
+        /* ── STEPPER ── */
+        .phase-stepper {
+            display: flex; align-items: center; justify-content: center;
+            gap: 0; margin-bottom: 20px; padding: 0 20px;
+            animation: fadeInUp 0.6s ease-out 0.05s both;
+        }
+        .stepper-step {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 16px; border-radius: 999px;
+            font-size: 12px; font-weight: 600; color: var(--text-light);
+            transition: all 0.3s ease;
+        }
+        .stepper-step .stepper-num {
+            width: 24px; height: 24px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 700;
+            background: var(--surface2); color: var(--text-light);
+            transition: all 0.3s ease;
+        }
+        .stepper-step.active { color: var(--accent); }
+        .stepper-step.active .stepper-num {
+            background: var(--accent); color: white;
+        }
+        .stepper-step.completed .stepper-num {
+            background: var(--green); color: white;
+        }
+        .stepper-step.completed { color: var(--green); }
+        .stepper-line {
+            width: 40px; height: 2px; background: var(--border);
+            transition: background 0.3s ease;
+        }
+        .stepper-line.active { background: var(--green); }
+
+        /* ── EMPTY STATE ── */
+        .empty-state {
+            text-align: center; padding: 48px 20px;
+            color: var(--text-light);
+            animation: fadeInUp 0.6s ease-out 0.1s both;
+        }
+        .empty-state-icon {
+            font-size: 48px; margin-bottom: 12px; opacity: 0.4;
+        }
+        .empty-state-text {
+            font-size: 14px; font-weight: 500; line-height: 1.6;
+        }
+        .empty-state-hint {
+            font-size: 11px; margin-top: 6px; color: var(--text-light); opacity: 0.7;
+        }
+
         /* ── RESULTS BAR ── */
         .results-section { display: none; }
         .results-section.visible { display: block; }
@@ -326,9 +375,6 @@
         .comp-card-desc {
             font-size: 11px; color: var(--text-muted); line-height: 1.5;
             grid-column: 1 / -1; margin-top: 2px;
-        }
-        .comp-verify {
-            font-size: 11px; color: var(--text-light); padding: 4px 0;
         }
         .akuma-summary {
             font-size: 13px; line-height: 1.7; color: var(--text-muted);
@@ -1050,6 +1096,38 @@
         }
         .toast-banner.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+        /* ── PHASE TRANSITION ── */
+        #phase2-section {
+            animation: fadeInUp 0.5s ease-out both;
+        }
+
+        /* ── PRINT STYLES ── */
+        @media print {
+            body { padding: 0; background: white; color: #222; }
+            .back-home, .theme-toggle, .toast-banner,
+            .btn-row, .btn-calcular, .btn-reset, .btn-examples,
+            .examples-dropdown, .phase-stepper,
+            .empty-state, .app-footer, #phase1-pdf-row,
+            .correction-input-row .btn-primary,
+            .actions-row, .patient-details,
+            .info-toggle, #btn-aplicar-akuma, #link-reset-akuma,
+            .feucht-panel summary, .kl-buttons,
+            .feucht-row, .seesaw-popover, .variant-popover, .wblr-popover,
+            .d3-tooltip { display: none !important; }
+            .app-header {
+                background: #1a3a5c !important; color: white !important;
+                box-shadow: none; border-radius: 0; padding: 20px 24px;
+                margin-bottom: 16px; -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .app-header::before, .app-header::after { display: none; }
+            .card, .correction-card { box-shadow: none; border: 1px solid #ddd; page-break-inside: avoid; }
+            .results-section, .results-section.visible { display: block !important; }
+            #phase2-section { display: block !important; }
+            .comp-card-badge, .val-chip { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            * { transition: none !important; animation: none !important; }
+        }
+
         /* ── DARK MODE ── */
         [data-theme="dark"] {
             --bg: #111827; --surface: #1f2937; --surface2: #283244;
@@ -1224,6 +1302,26 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- ─── STEPPER ─── -->
+    <div class="phase-stepper" id="phase-stepper">
+        <div class="stepper-step" id="step-1">
+            <span class="stepper-num">1</span>
+            <span>Análisis</span>
+        </div>
+        <div class="stepper-line" id="stepper-line"></div>
+        <div class="stepper-step" id="step-2">
+            <span class="stepper-num">2</span>
+            <span>Corrección</span>
+        </div>
+    </div>
+
+    <!-- ─── EMPTY STATE ─── -->
+    <div class="empty-state" id="empty-state">
+        <div class="empty-state-icon">📐</div>
+        <div class="empty-state-text">Introduce los valores radiológicos para analizar</div>
+        <div class="empty-state-hint">mHKA + al menos mLDFA o mMPTA</div>
     </div>
 
     <!-- ─── REAL-TIME ANALYSIS (Fase 1) ─── -->
@@ -2162,6 +2260,27 @@ function resetAkumaHighlight() {
 }
 
 // ─────────────────────────────────────────────
+//  STEPPER
+// ─────────────────────────────────────────────
+function updateStepper(phase) {
+    const s1 = document.getElementById('step-1');
+    const s2 = document.getElementById('step-2');
+    const line = document.getElementById('stepper-line');
+    s1.className = 'stepper-step';
+    s2.className = 'stepper-step';
+    line.className = 'stepper-line';
+    if (phase === 0) {
+        // initial state — no active
+    } else if (phase === 1) {
+        s1.classList.add('active');
+    } else if (phase === 2) {
+        s1.classList.add('completed');
+        s2.classList.add('active');
+        line.classList.add('active');
+    }
+}
+
+// ─────────────────────────────────────────────
 //  FASE 1: ANÁLISIS EN TIEMPO REAL
 // ─────────────────────────────────────────────
 function renderPhase1() {
@@ -2175,6 +2294,8 @@ function renderPhase1() {
     // Necesitamos al menos mHKA + (mLDFA o mMPTA) para mostrar algo útil
     if (isNaN(mhka) || (isNaN(mldfa) && isNaN(mmpta))) {
         document.getElementById('phase1-section').classList.remove('visible');
+        document.getElementById('empty-state').style.display = '';
+        updateStepper(0);
         return;
     }
     // Si faltan valores, usar defaults para cálculo parcial
@@ -2357,9 +2478,11 @@ function renderPhase1() {
         }
     });
 
-    // Show phase 1, show phase 1 PDF button
+    // Show phase 1, hide empty state, update stepper
     document.getElementById('phase1-section').classList.add('visible');
+    document.getElementById('empty-state').style.display = 'none';
     document.getElementById('phase1-pdf-row').style.display = '';
+    updateStepper(1);
     // Show phase 2 only if correction planning makes sense (not UKA-only)
     document.getElementById('phase2-section').style.display = diag.recoClass === 'uka' ? 'none' : '';
     // Reset previous correction results (new case = new correction)
@@ -2665,6 +2788,7 @@ function onCalcularCorreccion() {
     window._lastResult = { data, clasificacion, akuma, diag, correc };
 
     document.getElementById('correction-results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    updateStepper(2);
     mostrarToast('Corrección calculada');
 }
 
@@ -2707,6 +2831,9 @@ function onLimpiar() {
     document.getElementById('algo-name-comp').textContent = 'AKUMA';
     document.querySelectorAll('.algo-name-ref').forEach(el => el.textContent = 'AKUMA');
     document.getElementById('akula-warning').style.display = 'none';
+    // Reset stepper, show empty state, clear validation
+    updateStepper(0);
+    document.getElementById('empty-state').style.display = '';
     window._phase1 = null;
     window._lastResult = null;
     _hasCalculated = false;
