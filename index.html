@@ -2585,23 +2585,6 @@ function renderPhase1() {
         </div>
     `;
 
-    // D3 range indicators
-    renderRangeIndicator('range-ldfa', _mldfa, { min: 78, max: 96, zones: [
-        { from: 78, to: 84, color: 'var(--red)', colorDark: '#f87171' },
-        { from: 84, to: 90, color: 'var(--green)', colorDark: '#4ade80' },
-        { from: 90, to: 96, color: 'var(--red)', colorDark: '#f87171' }
-    ], ticks: [78, 84, 87, 90, 96], extremes: [78, 96] });
-    renderRangeIndicator('range-mpta', _mmpta, { min: 78, max: 96, zones: [
-        { from: 78, to: 84, color: 'var(--red)', colorDark: '#f87171' },
-        { from: 84, to: 90, color: 'var(--green)', colorDark: '#4ade80' },
-        { from: 90, to: 96, color: 'var(--red)', colorDark: '#f87171' }
-    ], ticks: [78, 84, 87, 90, 96], extremes: [78, 96] });
-    renderRangeIndicator('range-jlca', _jlca, { min: 0, max: 8, zones: [
-        { from: 0, to: 2, color: 'var(--green)', colorDark: '#4ade80' },
-        { from: 2, to: 4, color: 'var(--amber)', colorDark: '#fbbf24' },
-        { from: 4, to: 8, color: 'var(--red)', colorDark: '#f87171' }
-    ], ticks: [0, 2, 4, 6, 8], extremes: [0, 8] });
-
     // Update angle overlays on image
     const ovLdfa = document.getElementById('ov-ldfa');
     const ovMpta = document.getElementById('ov-mpta');
@@ -2615,12 +2598,31 @@ function renderPhase1() {
         ovJlca.className = `angle-overlay angle-jlca${jlcaStatus === 'amber' ? ' warn' : jlcaStatus === 'red' ? ' danger' : ''}`;
     }
 
-    // Contribution bars
-    renderD3Bars(akuma, _mldfa, _mmpta);
-
     const eadSection = document.getElementById('ead-detail-section');
     if (akuma.absEAD > 0) { eadSection.style.display = ''; }
     else { eadSection.style.display = 'none'; }
+
+    // D3 visualizations — wrapped in try-catch so results still show if D3 fails to load
+    try {
+        renderRangeIndicator('range-ldfa', _mldfa, { min: 78, max: 96, zones: [
+            { from: 78, to: 84, color: 'var(--red)', colorDark: '#f87171' },
+            { from: 84, to: 90, color: 'var(--green)', colorDark: '#4ade80' },
+            { from: 90, to: 96, color: 'var(--red)', colorDark: '#f87171' }
+        ], ticks: [78, 84, 87, 90, 96], extremes: [78, 96] });
+        renderRangeIndicator('range-mpta', _mmpta, { min: 78, max: 96, zones: [
+            { from: 78, to: 84, color: 'var(--red)', colorDark: '#f87171' },
+            { from: 84, to: 90, color: 'var(--green)', colorDark: '#4ade80' },
+            { from: 90, to: 96, color: 'var(--red)', colorDark: '#f87171' }
+        ], ticks: [78, 84, 87, 90, 96], extremes: [78, 96] });
+        renderRangeIndicator('range-jlca', _jlca, { min: 0, max: 8, zones: [
+            { from: 0, to: 2, color: 'var(--green)', colorDark: '#4ade80' },
+            { from: 2, to: 4, color: 'var(--amber)', colorDark: '#fbbf24' },
+            { from: 4, to: 8, color: 'var(--red)', colorDark: '#f87171' }
+        ], ticks: [0, 2, 4, 6, 8], extremes: [0, 8] });
+        renderD3Bars(akuma, _mldfa, _mmpta);
+    } catch (e) {
+        console.warn('D3 charts unavailable:', e.message);
+    }
 
     // Clinical summary
     const sumEl = document.getElementById('akuma-summary');
