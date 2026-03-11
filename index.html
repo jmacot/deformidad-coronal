@@ -2602,6 +2602,11 @@ function renderPhase1() {
     if (akuma.absEAD > 0) { eadSection.style.display = ''; }
     else { eadSection.style.display = 'none'; }
 
+    // Make section visible BEFORE D3 rendering — Windows Chromium gives zero dimensions
+    // to SVGs created inside display:none containers
+    document.getElementById('phase1-section').classList.add('visible');
+    document.getElementById('empty-state').style.display = 'none';
+
     // D3 visualizations — wrapped in try-catch so results still show if D3 fails to load
     try {
         renderRangeIndicator('range-ldfa', _mldfa, { min: 78, max: 96, zones: [
@@ -2740,9 +2745,7 @@ function renderPhase1() {
         }
     });
 
-    // Show phase 1, hide empty state, update stepper
-    document.getElementById('phase1-section').classList.add('visible');
-    document.getElementById('empty-state').style.display = 'none';
+    // Update stepper and show PDF row
     document.getElementById('phase1-pdf-row').style.display = '';
     updateStepper(1);
     // Show phase 2 only if correction planning makes sense (not UKA-only)
