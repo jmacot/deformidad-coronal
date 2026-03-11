@@ -2629,6 +2629,32 @@ function renderPhase1() {
         renderD3Bars(akuma, _mldfa, _mmpta);
     } catch (e) {
         console.warn('D3 charts unavailable:', e.message);
+        // Fallback — barras CSS simples si D3 no está disponible
+        const fallbackBar = (id, segs) => {
+            const c = document.getElementById(id);
+            if (!c) return;
+            c.textContent = '';
+            const wrap = document.createElement('div');
+            wrap.style.cssText = 'display:flex;border-radius:10px;overflow:hidden;height:36px;font-family:Inter,sans-serif;font-size:12px;font-weight:700';
+            segs.filter(s => s.pct > 0).forEach(s => {
+                const seg = document.createElement('div');
+                seg.style.cssText = 'width:' + s.pct + '%;background:' + s.color + ';color:#fff;display:flex;align-items:center;justify-content:center;gap:4px';
+                seg.textContent = s.pct + '% ' + s.label;
+                wrap.appendChild(seg);
+            });
+            c.appendChild(wrap);
+        };
+        const theme = getChartTheme();
+        fallbackBar('bar-iad-ead', [
+            { pct: akuma.iadPct, color: theme.amber, label: 'IAD' },
+            { pct: akuma.eadPct, color: theme.blue || theme.accent, label: 'EAD' }
+        ]);
+        if (akuma.absEAD > 0) {
+            fallbackBar('bar-tf', [
+                { pct: akuma.tPct, color: theme.accent, label: 'Tibial' },
+                { pct: akuma.fPct, color: theme.purple || '#8b5cf6', label: 'Femoral' }
+            ]);
+        }
     }
 
     // Clinical summary
