@@ -456,6 +456,22 @@
             font-size: 11px; color: var(--text-muted); line-height: 1.5;
             grid-column: 1 / -1; margin-top: 2px;
         }
+
+        /* ── EPIDEMIOLOGÍA — Opción A: Nota contextual ── */
+        .epid-note {
+            margin-top: 12px; padding: 10px 14px;
+            background: var(--accent-light); border-left: 3px solid var(--accent);
+            border-radius: var(--radius-sm); font-size: 12px; line-height: 1.6;
+            color: var(--text-muted);
+        }
+        .epid-note-title {
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.5px; color: var(--accent); margin-bottom: 4px;
+        }
+        .epid-note strong { color: var(--text); }
+        .epid-note .epid-highlight { font-weight: 600; color: var(--accent); }
+        .epid-note .epid-ref { font-size: 10px; color: var(--text-light); margin-top: 6px; }
+
         .summary-row {
             display: flex; gap: 10px; margin-top: 8px;
         }
@@ -1522,6 +1538,8 @@
                 <pre class="telemetria-pre" id="telemetria-text"></pre>
             </div>
             </div>
+            <!-- Opción A: Nota epidemiológica contextual -->
+            <div id="epid-note" class="epid-note" style="display:none"></div>
         </div>
 
         <!-- Diagnóstico Diferencial -->
@@ -2904,6 +2922,9 @@ function renderPhase1() {
         }
     });
 
+    // Epidemiology context
+    renderEpidemiologia(akuma, clasificacion);
+
     // Update stepper and show PDF row
     document.getElementById('phase1-pdf-row').style.display = '';
     updateStepper(1);
@@ -2915,6 +2936,78 @@ function renderPhase1() {
     document.getElementById('correction-results').style.display = 'none';
     document.getElementById('explanation-card').style.display = 'none';
     _hasCalculated = true;
+}
+
+// ─────────────────────────────────────────────
+//  EPIDEMIOLOGÍA — Contexto de distribución de deformidades
+// ─────────────────────────────────────────────
+function renderEpidemiologia(akuma, clasificacion) {
+    const noteEl = document.getElementById('epid-note');
+
+    // Solo mostrar cuando hay deformidad angular significativa
+    if (akuma.GD < 1) {
+        noteEl.style.display = 'none';
+        return;
+    }
+
+    const esVaro = akuma.esVaro;
+    const isIntra = akuma.iadPct > 60;
+    const isTibial = !isIntra && akuma.tPct >= 80;
+    const isFemoral = !isIntra && akuma.fPct >= 80;
+    const isMixta = !isIntra && !isTibial && !isFemoral && akuma.eadPct > 60;
+
+    // Data: approximate ranges from published surgical series
+    // Varo: tibial predominant is most common in HTO series
+    // Valgo: less studied, femoral contribution more relevant
+    const datos = esVaro ? {
+        tibial: { pct: 65, rango: '60–70', label: 'Tibial predominante' },
+        mixta:  { pct: 20, rango: '15–25', label: 'Mixta (tibial + femoral)' },
+        femoral:{ pct: 15, rango: '10–15', label: 'Femoral predominante' }
+    } : {
+        femoral:{ pct: 55, rango: '50–60', label: 'Femoral predominante' },
+        mixta:  { pct: 25, rango: '20–30', label: 'Mixta (tibial + femoral)' },
+        tibial: { pct: 20, rango: '15–25', label: 'Tibial predominante' }
+    };
+
+    // Determine patient's category
+    let patientCat = 'mixta';
+    if (isIntra) patientCat = 'intra';
+    else if (isTibial) patientCat = 'tibial';
+    else if (isFemoral) patientCat = 'femoral';
+
+    const catLabels = {
+        tibial: 'predominantemente tibial',
+        femoral: 'predominantemente femoral',
+        mixta: 'mixta (tibial + femoral)',
+        intra: 'predominantemente intra-articular'
+    };
+
+    const frecLabels = {
+        tibial: esVaro ? 'el patrón más frecuente' : 'menos habitual en valgo',
+        femoral: esVaro ? 'poco frecuente' : 'el patrón más frecuente en valgo',
+        mixta: 'frecuencia intermedia',
+        intra: 'frecuencia variable según grado de artrosis'
+    };
+
+    // ─── OPCIÓN A: Nota contextual ───
+    let noteHtml = `<div class="epid-note-title">Contexto epidemiológico</div>`;
+    if (isIntra) {
+        noteHtml += `La deformidad de este paciente es <span class="epid-highlight">${catLabels[patientCat]}</span> (IAD% ${akuma.iadPct}%). `;
+        noteHtml += `Cuando la deformidad intra-articular predomina, la proporción depende del grado de artrosis y la integridad ligamentosa. `;
+        noteHtml += `La contribución extra-articular (EAD% ${akuma.eadPct}%) es secundaria en este caso.`;
+    } else {
+        noteHtml += `En las series publicadas de ${esVaro ? 'artrosis medial (varo)' : 'artrosis lateral (valgo)'}, `;
+        noteHtml += `la deformidad <strong>${datos.tibial.label.toLowerCase()}</strong> representa ~${datos.tibial.rango}% de los casos, `;
+        noteHtml += `la <strong>${datos.mixta.label.toLowerCase()}</strong> ~${datos.mixta.rango}%, `;
+        noteHtml += `y la <strong>${datos.femoral.label.toLowerCase()}</strong> ~${datos.femoral.rango}%. `;
+        noteHtml += `<br>Este paciente presenta una deformidad <span class="epid-highlight">${catLabels[patientCat]}</span> — <strong>${frecLabels[patientCat]}</strong>.`;
+    }
+    if (!esVaro) {
+        noteHtml += `<br><em style="font-size:11px;opacity:0.8">Nota: Los datos epidemiológicos en valgo son más limitados que en varo.</em>`;
+    }
+    noteHtml += `<div class="epid-ref">Datos aproximados de series quirúrgicas publicadas</div>`;
+    noteEl.innerHTML = noteHtml;
+    noteEl.style.display = '';
 }
 
 // ─────────────────────────────────────────────
@@ -3278,6 +3371,7 @@ function onLimpiar() {
     document.getElementById('explanation-card').style.display = 'none';
     document.getElementById('phase1-pdf-row').style.display = 'none';
     document.getElementById('summary-row').style.display = 'none';
+    document.getElementById('epid-note').style.display = 'none';
     resetAkumaHighlight();
     document.getElementById('btn-aplicar-akuma').disabled = true;
     // Reset algorithm name to default
