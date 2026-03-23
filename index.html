@@ -701,6 +701,8 @@
         .reco-box.dlo .reco-name { color: var(--purple); }
         .reco-box.grey { border-color: var(--text-light); border-style: dashed; }
         .reco-box.grey .reco-name { color: var(--text-muted); }
+        .reco-box.normal { border-color: var(--green); border-style: dashed; background: var(--green-light); }
+        .reco-box.normal .reco-name { color: var(--green); }
 
         /* ── CORRECTION SECTION ── */
         .correction-card {
@@ -1899,7 +1901,7 @@ function clasificarDeformidad(mHKA) {
 //  DIAGNÓSTICO DIFERENCIAL
 // ─────────────────────────────────────────────
 function diagnosticoDiferencial(akuma, edad, mLDFA, mMPTA, JLCA, targetHKA, mHKA) {
-    const { iadPct, eadPct, tPct, fPct, FD, TD, esVaro } = akuma;
+    const { iadPct, eadPct, tPct, fPct, FD, TD, GD, esVaro } = akuma;
     const warnings = [];
     let recoType = '', recoName = '', recoVariant = '', rationale = '', recoClass = '';
 
@@ -1926,14 +1928,19 @@ function diagnosticoDiferencial(akuma, edad, mLDFA, mMPTA, JLCA, targetHKA, mHKA
     const needsDLO = (
         Math.abs(FD) > 3 ||
         (esVaro && mLDFA > 90) || (!esVaro && mLDFA < 84) ||
-        mpptaPostHTO > 90 ||
+        mpptaPostHTO > 93 ||
         jloPostHTO > 5 ||
         correccion > 12.5
     );
 
     const ukaCompartimento = esVaro ? 'medial' : 'lateral';
 
-    if (iadPct > 60) {
+    if (GD < 2) {
+        recoType = 'Alineación normal'; recoName = 'Sin indicación';
+        recoVariant = 'No se identifica deformidad significativa';
+        rationale = `Deformidad global ${GD.toFixed(1)}° (<2°). Los ángulos se encuentran dentro de rangos fisiológicos (mLDFA ${mLDFA}°, mMPTA ${mMPTA}°, JLCA ${JLCA}°). No existe indicación de osteotomía correctora ni artroplastia basada en la alineación.`;
+        recoClass = 'normal';
+    } else if (iadPct > 60) {
         if (edad > 55) {
             recoType = 'Artroplastia unicompartimental'; recoName = 'UKA';
             recoVariant = `Prótesis unicompartimental ${ukaCompartimento}`;
@@ -2597,7 +2604,7 @@ function renderPhase1() {
     document.getElementById('algo-name-flow').textContent = algoName;
     document.getElementById('algo-name-comp').textContent = algoName;
     document.querySelectorAll('.algo-name-ref').forEach(el => el.textContent = algoName);
-    document.getElementById('akula-warning').style.display = akuma.esVaro ? 'none' : '';
+    document.getElementById('akula-warning').style.display = (akuma.esVaro || akuma.GD < 2) ? 'none' : '';
 
     // Results bar
     const tipoColor = clasificacion.tipo === 'VARO' ? 'var(--red)' : clasificacion.tipo === 'VALGO' ? 'var(--blue)' : 'var(--green)';
