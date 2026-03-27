@@ -1953,7 +1953,32 @@ function diagnosticoDiferencial(akuma, edad, mLDFA, mMPTA, JLCA, targetHKA, mHKA
             recoClass = 'uka';
         }
     } else if (eadPct > 60) {
-        if (fPct >= 80) {
+        // Ángulos normales: MPTA 85-90° y LDFA 84-90° → deformidad constitucional, no ósea
+        const mptaNormal = mMPTA >= 85 && mMPTA <= 90;
+        const ldfaNormal = mLDFA >= 84 && mLDFA <= 90;
+
+        if (mptaNormal && ldfaNormal) {
+            recoType = 'Revalorar caso'; recoName = 'No osteotomía';
+            recoVariant = 'Valorar artroplastia según grado de afectación';
+            rationale = `El análisis AKUMA clasifica la deformidad como extra-articular (EAD ${eadPct}%), sin embargo los ángulos óseos se encuentran dentro de rangos fisiológicos normales:<br>` +
+                `<ul class="reco-reasons">` +
+                `<li><span class="criterio-limite">mMPTA</span> &rarr; <span class="criterio-ok">${mMPTA}° (normal: 85-90°)</span></li>` +
+                `<li><span class="criterio-limite">mLDFA</span> &rarr; <span class="criterio-ok">${mLDFA}° (normal: 84-90°)</span></li></ul>` +
+                `La deformidad en varo de ${GD.toFixed(1)}° es constitucional (suma de pequeñas desviaciones fisiológicas), no por deformidad ósea significativa. ` +
+                `<strong>La cirugía de preservación articular (osteotomía) no está indicada</strong> al no existir un defecto angular que corregir.<br><br>` +
+                `Valorar según grado de afectación articular: artroplastia unicompartimental (UKA) o total (TKA) (<a class="ref-link" href="articulos/Ollivier-KSSTA-2025.pdf" target="_blank">Ollivier et al. KSSTA 2025</a>).`;
+            recoClass = 'grey';
+        } else if (edad > 70) {
+            recoType = 'Artroplastia recomendada'; recoName = 'UKA / TKA';
+            recoVariant = `Valorar unicompartimental ${ukaCompartimento} o total según afectación`;
+            rationale = `Deformidad extra-articular (EAD ${eadPct}%) con contribuciones tibial ${tPct}% y femoral ${fPct}%.<br><br>` +
+                `<strong>Edad ${edad} años (&gt;70):</strong> la osteotomía correctora no está recomendada. ` +
+                `La capacidad de remodelación ósea es limitada y el riesgo-beneficio favorece la artroplastia.<br><br>` +
+                `Valorar según grado de artrosis y afectación compartimental: UKA ${ukaCompartimento} si artrosis unicompartimental aislada, TKA si afectación multicompartimental ` +
+                `(<a class="ref-link" href="articulos/Ollivier-KSSTA-2025.pdf" target="_blank">Ollivier et al. KSSTA 2025</a>, ` +
+                `<a class="ref-link" href="articulos/Goodell-JBJS-2023.pdf" target="_blank">Goodell et al. JBJS 2023</a>).`;
+            recoClass = 'uka';
+        } else if (fPct >= 80) {
             recoType = 'Osteotomía femoral distal'; recoName = 'DFO';
             recoVariant = esVaro ? 'Cierre cuña lateral (LCWDFO)' : 'Cierre cuña medial (MCWDFO)';
             rationale = `Deformidad extra-articular (EAD ${eadPct}%) predominantemente femoral (F% ${fPct}% ≥ 80%). mLDFA ${mLDFA}° desviado respecto a 87° (normal: 84-90°). La corrección se realiza a nivel femoral distal (<a class="ref-link" href="articulos/Ollivier-KSSTA-2025.pdf" target="_blank">Ollivier et al. KSSTA 2025</a>).`;
@@ -2610,7 +2635,7 @@ function renderPhase1() {
     const tipoColor = clasificacion.tipo === 'VARO' ? 'var(--red)' : clasificacion.tipo === 'VALGO' ? 'var(--blue)' : 'var(--green)';
     const sevColorVar = clasificacion.sevColor === 'green' ? 'var(--green)' : clasificacion.sevColor === 'amber' ? 'var(--amber)' : 'var(--red)';
     const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-    const cpakUrl = isLocal ? '#' : `https://jmacot.github.io/CPAK/?ldfa=${_mldfa}&mpta=${_mmpta}&mhka=${mhka}`;
+    const cpakUrl = isLocal ? '#' : `https://jmacot.github.io/CPAK/?ldfa=${_mldfa}&mpta=${_mmpta}&mhka=${mhkaRaw}`;
     const eadLabel = akuma.eadPct > 0 ? (akuma.tPct >= 80 ? 'Tibial' : akuma.fPct >= 80 ? 'Femoral' : 'Mixto') : '—';
     document.getElementById('results-bar').innerHTML = `
         <div class="result-box"><div class="result-label">Alineación</div><div class="result-value" style="color:${tipoColor}">${clasificacion.tipo}</div><div class="result-sublabel" style="color:${tipoColor}">mHKA ${mhka.toFixed(1)}°</div></div>

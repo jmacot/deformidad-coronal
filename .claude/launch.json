@@ -4,7 +4,7 @@
     {
       "name": "knee-align",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["serve", "/Users/jma/Documents/Proyectos/knee-align", "-l", "8090"],
+      "runtimeArgs": ["serve", "/Users/jma/Documents/Proyectos/COT/knee-align", "-l", "8090"],
       "port": 8090
     }
   ]
