@@ -1225,16 +1225,39 @@
 
         /* ── COPY BUTTON ── */
         .btn-copy {
-            display: inline-flex; align-items: center; gap: 6px;
-            padding: 6px 14px; border-radius: 8px;
-            font-size: 12px; font-weight: 600; font-family: 'Inter', sans-serif;
-            cursor: pointer; transition: all 0.2s; border: 1.5px solid var(--accent);
-            background: transparent; color: var(--accent);
+            --cp-bg: var(--accent);
+            --cp-hover: var(--accent-hover);
+            display: inline-flex; align-items: center; justify-content: flex-start;
+            border: none; border-radius: 8px; overflow: hidden;
+            cursor: pointer; box-shadow: var(--shadow-sm);
+            height: 32px; padding: 0; flex-shrink: 0;
+            transition: box-shadow 0.2s;
+            font-family: 'Inter', sans-serif;
         }
-        .btn-copy:hover { background: var(--accent); color: white; }
-        .btn-copy.green { border-color: var(--green); color: var(--green); }
-        .btn-copy.green:hover { background: var(--green); color: white; }
-        .btn-copy svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+        .btn-copy:hover { box-shadow: var(--shadow); }
+        .btn-copy:active { transform: scale(0.96); }
+        .btn-copy .cp-text {
+            height: 100%; display: flex; align-items: center; justify-content: center;
+            padding: 0 12px; font-size: 11px; font-weight: 700;
+            color: white; background: var(--cp-bg);
+            transition: background 0.2s;
+        }
+        .btn-copy .cp-icon {
+            height: 100%; display: flex; align-items: center; justify-content: center;
+            width: 32px; color: white; background: var(--cp-hover);
+            transition: background 0.2s;
+        }
+        .btn-copy .cp-icon svg { width: 14px; height: 14px; }
+        .btn-copy .cp-check { display: none; }
+        .btn-copy:hover .cp-text { filter: brightness(0.9); }
+        .btn-copy:hover .cp-icon { filter: brightness(0.85); }
+        .btn-copy.copied .cp-clipboard { display: none; }
+        .btn-copy.copied .cp-check { display: block; }
+        .btn-copy.copied .cp-text { background: var(--green); }
+        .btn-copy.copied .cp-icon { background: #15803d; }
+        .btn-copy.blue { --cp-bg: #7c3aed; --cp-hover: #6d28d9; }
+        .btn-copy.green { --cp-bg: var(--green); --cp-hover: #15803d; }
+        [data-theme="dark"] .btn-copy.blue { --cp-bg: #a78bfa; --cp-hover: #8b5cf6; }
 
         /* ── PATIENT DETAILS (PDF export) ── */
         .patient-details {
@@ -1585,9 +1608,12 @@
             <div id="telemetria-block" class="telemetria-block">
                 <div class="telemetria-header">
                     <span class="telemetria-title">Cálculos para evolutivo</span>
-                    <button class="btn-copy" onclick="copiarTelemetria()" style="padding:3px 8px;font-size:10px">
-                        <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-                        Copiar
+                    <button class="btn-copy blue" onclick="copiarTelemetria(this)">
+                        <span class="cp-text">Copiar</span>
+                        <span class="cp-icon">
+                            <svg class="cp-clipboard" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                            <svg class="cp-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        </span>
                     </button>
                 </div>
                 <pre class="telemetria-pre" id="telemetria-text"></pre>
@@ -1756,9 +1782,12 @@
                     </div>
                 </details>
                 <div class="actions-row" style="margin-top:10px">
-                    <button class="btn-copy" onclick="copiarResumen()">
-                        <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-                        Copiar resumen
+                    <button class="btn-copy blue" onclick="copiarResumen(this)">
+                        <span class="cp-text">Copiar resumen</span>
+                        <span class="cp-icon">
+                            <svg class="cp-clipboard" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                            <svg class="cp-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        </span>
                     </button>
                     <button class="btn-copy green" onclick="generarPDF(false)">
                         <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
@@ -3540,13 +3569,27 @@ function toggleRefValues() {
     btn.classList.toggle('open');
 }
 
-function copiarTelemetria() {
+function showCopied(btn) {
+    if (!btn) return;
+    btn.classList.add('copied');
+    var txt = btn.querySelector('.cp-text');
+    var orig = txt ? txt.textContent : '';
+    if (txt) txt.textContent = 'Copiado';
+    clearTimeout(btn._cpTimer);
+    btn._cpTimer = setTimeout(function() {
+        btn.classList.remove('copied');
+        if (txt) txt.textContent = orig;
+    }, 1800);
+}
+
+function copiarTelemetria(btn) {
     const text = document.getElementById('telemetria-text').textContent;
     if (!text) return;
     navigator.clipboard.writeText(text).then(() => mostrarToast('Telemetría copiada'));
+    showCopied(btn);
 }
 
-function copiarResumen() {
+function copiarResumen(btn) {
     if (!window._lastResult) return;
     const { data, clasificacion, akuma, diag, correc } = window._lastResult;
     const text = [
@@ -3561,6 +3604,7 @@ function copiarResumen() {
         `Postop: mMPTA ${correc.targetMPTA.toFixed(1)}° | mLDFA ${correc.targetLDFA.toFixed(1)}° | JLO ${correc.jloPostop.toFixed(1)}° | Cuña ${correc.wedgeHeight.toFixed(1)}mm`
     ].filter(Boolean).join('\n');
     navigator.clipboard.writeText(text).then(() => mostrarToast('Resumen copiado'));
+    showCopied(btn);
 }
 
 // ─────────────────────────────────────────────
