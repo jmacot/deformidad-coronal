@@ -9,3 +9,5 @@ Desktop.ini
 *.log
 .claude/
 articulos/
+docs/
+CLAUDE.md
