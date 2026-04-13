@@ -2018,7 +2018,7 @@ function diagnosticoDiferencial(akuma, edad, mLDFA, mMPTA, JLCA, targetHKA, mHKA
     const mpptaPostHTO = esVaro ? mMPTA + correccion : mMPTA - correccion;
     const jloPostHTO = Math.abs(mpptaPostHTO - mLDFA);
 
-    // Simulación DFO aislada (Demey 2025, Schuster et al. KSSTA 2023)
+    // Simulación DFO aislada (Demey 2025, Dawson et al. ESSKA Consensus Part I KSSTA 2024)
     const ldfaPostDFO = esVaro ? mLDFA - correccion : mLDFA + correccion;
     const jloPostDFO = Math.abs(mMPTA - ldfaPostDFO);
     const dfoSafe = (ldfaPostDFO >= 85 && ldfaPostDFO <= 90 && jloPostDFO <= 5 && mMPTA <= 94);
@@ -2108,7 +2108,7 @@ function diagnosticoDiferencial(akuma, edad, mLDFA, mMPTA, JLCA, targetHKA, mHKA
                 `<li><span class="criterio-limite">LDFA postop</span> &rarr; <span class="criterio-ok">${ldfaPostDFO.toFixed(1)}° (rango 85-90° ✓)</span></li>` +
                 `<li><span class="criterio-limite">JLO postop</span> &rarr; <span class="criterio-ok">${jloPostDFO.toFixed(1)}° (≤5° ✓)</span></li>` +
                 `<li><span class="criterio-limite">MPTA</span> &rarr; <span class="criterio-ok">${mMPTA}° (sin tocar, <94° ✓)</span></li></ul>` +
-                `<small>La anatomía postoperatoria segura permite DFO aislada sin necesidad de DLO (<a class="ref-link" href="articulos/Distal femoral osteotomy for degenerative knee pathology.pdf" target="_blank">Demey 2025</a>, <a class="ref-link" href="https://doi.org/10.1007/s00167-022-07247-1" target="_blank">Schuster et al. KSSTA 2023</a>).</small>`;
+                `<small>La anatomía postoperatoria segura permite DFO aislada sin necesidad de DLO (<a class="ref-link" href="articulos/Distal femoral osteotomy for degenerative knee pathology.pdf" target="_blank">Demey 2025</a>, <a class="ref-link" href="https://doi.org/10.1002/ksa.12256" target="_blank">Dawson et al. ESSKA Consensus Part I KSSTA 2024</a>).</small>`;
             recoClass = '';
         } else if (tPct >= 80 && Math.abs(FD) <= 3 && !needsDLO) {
             recoType = 'Osteotomía tibial alta'; recoName = 'HTO';
@@ -2122,7 +2122,7 @@ function diagnosticoDiferencial(akuma, edad, mLDFA, mMPTA, JLCA, targetHKA, mHKA
             if (esVaro && mLDFA > 90) reasons.push(`<span class="criterio-limite">mLDFA &gt; 90°</span> &rarr; <span class="criterio-ok">Caso: ${mLDFA}° ✓</span>`);
             if (!esVaro && mLDFA < 84) reasons.push(`<span class="criterio-limite">mLDFA &lt; 84°</span> &rarr; <span class="criterio-ok">Caso: ${mLDFA}° ✓</span>`);
             if (mpptaPostHTO > 90) reasons.push(`<span class="criterio-limite">mMPTA postop HTO &gt; 90°</span> &rarr; <span class="criterio-ok">Caso: ${mpptaPostHTO.toFixed(1)}° ✓</span><br><small>ESSKA permite hasta 93° (<a class="ref-link" href="articulos/Lott-JISAKOS-2024.pdf" target="_blank">Lott et al. JISAKOS 2024</a>)</small>`);
-            if (jloPostHTO > 5) reasons.push(`<span class="criterio-limite">JLO postop HTO &gt; 5°</span> &rarr; <span class="criterio-ok">Caso: ${jloPostHTO.toFixed(1)}° ✓</span><br><small><a class="ref-link" href="https://doi.org/10.1007/s00167-022-07247-1" target="_blank">Schuster et al. KSSTA 2023</a></small>`);
+            if (jloPostHTO > 5) reasons.push(`<span class="criterio-limite">JLO postop HTO &gt; 5°</span> &rarr; <span class="criterio-ok">Caso: ${jloPostHTO.toFixed(1)}° ✓</span><br><small><a class="ref-link" href="https://doi.org/10.1002/ksa.12256" target="_blank">Dawson et al. ESSKA Consensus Part I KSSTA 2024</a></small>`);
             if (correccion > 12.5) reasons.push(`<span class="criterio-limite">Corrección total &gt; 12.5°</span> &rarr; <span class="criterio-ok">Caso: ${correccion.toFixed(1)}° ✓</span>`);
             const dloFemVar = esVaro ? 'LCWDFO' : 'MCWDFO';
             const dloTibVar = esVaro ? 'MOWHTO' : 'MCWHTO';
@@ -2271,7 +2271,7 @@ function generarExplicacion(data, clasificacion, akuma, diag, correc) {
             if (Math.abs(akuma.FD) > 3) paso3 += `la deformidad femoral (FD ${akuma.FD.toFixed(1)}°) supera 3° (consenso ESSKA); `;
             if (diag.mpptaPostHTO > 90) paso3 += `una HTO aislada crearía un MPTA postop de ${diag.mpptaPostHTO.toFixed(1)}° (>90°); `;
             if (diag.jloPostHTO > 5) paso3 += `la JLO postop sería ${diag.jloPostHTO.toFixed(1)}° (>5°); `;
-            paso3 += `(<a class="ref-link" href="articulos/Lott-JISAKOS-2024.pdf" target="_blank">Lott et al. JISAKOS 2024</a>, <a class="ref-link" href="https://doi.org/10.1007/s00167-022-07247-1" target="_blank">Schuster et al. KSSTA 2023</a>).`;
+            paso3 += `(<a class="ref-link" href="articulos/Lott-JISAKOS-2024.pdf" target="_blank">Lott et al. JISAKOS 2024</a>, <a class="ref-link" href="https://doi.org/10.1002/ksa.12256" target="_blank">Dawson et al. ESSKA Consensus Part I KSSTA 2024</a>).`;
         } else if (diag.recoName === 'HTO') {
             paso3 += `La deformidad es predominantemente tibial (T% ${akuma.tPct}%) con FD ${akuma.FD.toFixed(1)}° ≤3°, permitiendo una ${v('HTO aislada', 'accent')} sin riesgo excesivo de JLO (<a class="ref-link" href="articulos/Ollivier-KSSTA-2025.pdf" target="_blank">Ollivier et al. KSSTA 2025</a>).`;
         } else if (diag.recoName === 'DFO') {
