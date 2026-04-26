@@ -69,10 +69,12 @@ knee-align/
 
 ## Tecnologia
 
-- **HTML5 + CSS3 + JavaScript vanilla**
-- [D3.js](https://d3js.org/) para graficas de contribucion y visualizadores de rango
-- [pdfmake](http://pdfmake.org/) para exportacion de informes PDF
-- Tipografias: [Inter](https://fonts.google.com/specimen/Inter) y [Lora](https://fonts.google.com/specimen/Lora) (Google Fonts)
+- **HTML5 + CSS3 + JavaScript vanilla** (Sistema B "Radiologia Glass")
+- [D3.js](https://d3js.org/) para graficas de contribucion y visualizadores de rango (cargado por CDN con fallback)
+- [pdfmake](http://pdfmake.org/) cargado de forma diferida para exportacion de informes PDF
+- Tipografias: Source Serif 4 + Source Sans 3 + Source Code Pro (Google Fonts)
+- Glassmorphism con `backdrop-filter`, mesh gradient animado de fondo y sky toggle CSS puro para modo oscuro
+- Accesibilidad: skip link, focus-visible, smooth scroll, reduced-motion
 - Sin frameworks, sin build tools, sin backend
 
 ---
