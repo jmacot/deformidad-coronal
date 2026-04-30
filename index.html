@@ -1097,6 +1097,33 @@
         .ci-slope-row .slope-warn { background: var(--amber-light); color: var(--amber); }
         .ci-slope-row .slope-danger { background: var(--red-light); color: var(--red); }
 
+        /* ── JLO info collapsable ── */
+        .jlo-info { margin-top: 4px; font-size: 10px; }
+        .jlo-info summary {
+            cursor: pointer; color: var(--accent); list-style: none;
+            font-weight: 500; padding: 2px 0;
+        }
+        .jlo-info summary::-webkit-details-marker { display: none; }
+        .jlo-info summary:hover { opacity: 0.85; }
+        .jlo-info[open] summary { margin-bottom: 4px; }
+        .jlo-info > div { line-height: 1.45; color: var(--text-muted); }
+
+        /* ── WBLR / Fujisawa preset chips ── */
+        .wblr-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+        .wblr-chip {
+            font: 600 11px/1 var(--font-sans); letter-spacing: 0.02em;
+            padding: 6px 10px; border-radius: 999px;
+            background: var(--surface2); color: var(--text);
+            border: 1px solid var(--border-light); cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .wblr-chip:hover { border-color: var(--accent); color: var(--accent); }
+        .wblr-chip.active { background: var(--accent); color: #0f172a; border-color: var(--accent); }
+        .wblr-chip-label { font-weight: 400; opacity: 0.7; margin-left: 4px; }
+        [data-theme="dark"] .wblr-chip { background: rgba(56,189,248,0.08); border-color: rgba(56,189,248,0.25); }
+        [data-theme="dark"] .wblr-chip:hover { background: rgba(56,189,248,0.18); }
+        [data-theme="dark"] .wblr-chip.active { background: var(--accent); color: #0f172a; }
+
         /* ── STEP CARDS ── */
         .step-cards { display: flex; flex-direction: column; gap: 12px; }
         .step-card {
@@ -1778,7 +1805,14 @@
                 <div class="input-group" style="margin-bottom:0">
                     <label>HKA objetivo</label>
                     <input type="number" id="inp-target" min="175" max="190" step="0.1" value="180" placeholder="180" inputmode="decimal">
-                    <div class="input-hint">180° = alineación neutra</div>
+                    <div class="input-hint">180° = alineación neutra · o seleccionar punto de carga (<a href="#" class="wblr-link" onclick="mostrarWBLR(event)">WBLR</a> / Fujisawa):</div>
+                    <div class="wblr-chips" id="wblr-chips" role="group" aria-label="Presets de punto de carga">
+                        <button type="button" class="wblr-chip" data-wblr="50" onclick="setTargetByWBLR(50)" title="WBLR 50% — alineación neutra">50%<span class="wblr-chip-label">neutro</span></button>
+                        <button type="button" class="wblr-chip" data-wblr="55" onclick="setTargetByWBLR(55)" title="WBLR 55% — corrección biológica/lesión condral leve">55%<span class="wblr-chip-label">leve</span></button>
+                        <button type="button" class="wblr-chip" data-wblr="60" onclick="setTargetByWBLR(60)" title="WBLR 60% — OA medial moderada">60%<span class="wblr-chip-label">OA mod.</span></button>
+                        <button type="button" class="wblr-chip" data-wblr="62.5" onclick="setTargetByWBLR(62.5)" title="WBLR 62.5% — Fujisawa clásico">62.5%<span class="wblr-chip-label">Fujisawa</span></button>
+                        <button type="button" class="wblr-chip" data-wblr="65" onclick="setTargetByWBLR(65)" title="WBLR 65% — OA medial severa">65%<span class="wblr-chip-label">OA grave</span></button>
+                    </div>
                 </div>
                 <button class="btn-green" id="btn-correccion" onclick="onCalcularCorreccion()">Calcular corrección</button>
             </div>
@@ -1838,6 +1872,7 @@
         <p>Cuando el JLCA es elevado (>2°), parte de la desviación es <strong>intra-articular</strong> — por desgaste cartilaginoso asimétrico y/o laxitud ligamentosa.</p>
         <p>Al corregir el eje mecánico con una osteotomía, la carga se redistribuye: el compartimento colapsado se descarga y el JLCA <strong>se reduce espontáneamente</strong>. Es como un balancín: al mover un lado (hueso), el otro se mueve solo (articulación).</p>
         <p>Sin anticiparlo, la corrección real sería mayor que la planificada → <strong>sobrecorrección en valgo</strong>. Micicoi propone restar (JLCA−2)/2 para compensar este efecto.</p>
+        <p style="font-size:11px;color:var(--text-muted)">Hiranaka et al. (KSSTA 2017) validaron este refinamiento prospectivamente, mostrando reducción significativa del error de planificación en MOW-HTO con JLCA pre-op elevado.</p>
     </div>
     <div id="wblr-popover" class="wblr-popover">
         <button class="pop-close" onclick="cerrarWBLR()">&times;</button>
@@ -2024,20 +2059,27 @@ function diagnosticoDiferencial(akuma, edad, mLDFA, mMPTA, JLCA, targetHKA, mHKA
     const dfoSafe = (ldfaPostDFO >= 85 && ldfaPostDFO <= 90 && jloPostDFO <= 5 && mMPTA <= 94);
 
     // Edad
-    if (edad > 65) {
-        warnings.push('Edad >65 años: considerar artroplastia sobre osteotomía por menor capacidad de remodelación ósea.');
+    // Perfil ideal HTO según protocolo del cirujano y consenso clásico: <60 años;
+    // ESSKA/Ollivier admite hasta 65-70 según remodelación ósea individual.
+    if (edad > 60) {
+        warnings.push('Edad >60 años: fuera del perfil ideal de osteotomía. Valorar capacidad de remodelación ósea individual y, si es marginal, considerar artroplastia.');
     }
     if (edad < 40) {
         warnings.push('Paciente joven (<40 años): priorizar preservación articular.');
     }
 
-    // DLO checks (Ollivier et al. KSSTA 2025)
+    // DLO checks (Ollivier et al. KSSTA 2025).
+    // Nota: el umbral mpptaPostHTO > 93° sigue al consenso ESSKA Dawson 2024
+    // (Lott et al. KSSTA 2024 admite hasta 93°). Apuntes clínicos clásicos
+    // citaban 92° — la diferencia de 1° está dentro del margen de medición.
+    // ldfaPostDFO < 83° o > 93° fuerza DLO femoral (FD desproporcionada para DFO aislada).
     const needsDLO = (
         Math.abs(FD) > 3 ||
         (esVaro && mLDFA > 90) || (!esVaro && mLDFA < 84) ||
         mpptaPostHTO > 93 ||
         jloPostHTO > 5 ||
-        correccion > 12.5
+        correccion > 12.5 ||
+        ldfaPostDFO < 83 || ldfaPostDFO > 93
     );
 
     const ukaCompartimento = esVaro ? 'medial' : 'lateral';
@@ -2060,9 +2102,9 @@ function diagnosticoDiferencial(akuma, edad, mLDFA, mMPTA, JLCA, targetHKA, mHKA
             recoClass = 'uka';
         }
     } else if (eadPct > 60) {
-        // Ángulos normales: MPTA 85-90° y LDFA 84-90° → deformidad constitucional, no ósea
+        // Ángulos normales: MPTA 85-90° y LDFA 85-90° → deformidad constitucional, no ósea
         const mptaNormal = mMPTA >= 85 && mMPTA <= 90;
-        const ldfaNormal = mLDFA >= 84 && mLDFA <= 90;
+        const ldfaNormal = mLDFA >= 85 && mLDFA <= 90;
 
         if (mptaNormal && ldfaNormal) {
             recoType = 'Revalorar caso'; recoName = 'No osteotomía';
@@ -2070,7 +2112,7 @@ function diagnosticoDiferencial(akuma, edad, mLDFA, mMPTA, JLCA, targetHKA, mHKA
             rationale = `El análisis AKUMA clasifica la deformidad como extra-articular (EAD ${eadPct}%), sin embargo los ángulos óseos se encuentran dentro de rangos fisiológicos normales:<br>` +
                 `<ul class="reco-reasons">` +
                 `<li><span class="criterio-limite">mMPTA</span> &rarr; <span class="criterio-ok">${mMPTA}° (normal: 85-90°)</span></li>` +
-                `<li><span class="criterio-limite">mLDFA</span> &rarr; <span class="criterio-ok">${mLDFA}° (normal: 84-90°)</span></li></ul>` +
+                `<li><span class="criterio-limite">mLDFA</span> &rarr; <span class="criterio-ok">${mLDFA}° (normal: 85-90°)</span></li></ul>` +
                 `La deformidad en varo de ${GD.toFixed(1)}° es constitucional (suma de pequeñas desviaciones fisiológicas), no por deformidad ósea significativa. ` +
                 `<strong>La cirugía de preservación articular (osteotomía) no está indicada</strong> al no existir un defecto angular que corregir.<br><br>` +
                 `Valorar según grado de afectación articular: artroplastia unicompartimental (UKA) o total (TKA) (<a class="ref-link" href="articulos/Ollivier-KSSTA-2025.pdf" target="_blank">Ollivier et al. KSSTA 2025</a>).`;
@@ -2085,10 +2127,10 @@ function diagnosticoDiferencial(akuma, edad, mLDFA, mMPTA, JLCA, targetHKA, mHKA
                 `(<a class="ref-link" href="articulos/Ollivier-KSSTA-2025.pdf" target="_blank">Ollivier et al. KSSTA 2025</a>, ` +
                 `<a class="ref-link" href="articulos/Goodell-JBJS-2023.pdf" target="_blank">Goodell et al. JBJS 2023</a>).`;
             recoClass = 'uka';
-        } else if (fPct >= 80) {
+        } else if (fPct >= 80 && ldfaPostDFO >= 83 && ldfaPostDFO <= 93) {
             recoType = 'Osteotomía femoral distal'; recoName = 'DFO';
             recoVariant = esVaro ? 'Cierre cuña lateral (LCWDFO)' : 'Cierre cuña medial (MCWDFO)';
-            rationale = `Deformidad extra-articular (EAD ${eadPct}%) predominantemente femoral (F% ${fPct}% ≥ 80%). mLDFA ${mLDFA}° desviado respecto a 87° (normal: 84-90°). La corrección se realiza a nivel femoral distal (<a class="ref-link" href="articulos/Ollivier-KSSTA-2025.pdf" target="_blank">Ollivier et al. KSSTA 2025</a>).`;
+            rationale = `Deformidad extra-articular (EAD ${eadPct}%) predominantemente femoral (F% ${fPct}% ≥ 80%). mLDFA ${mLDFA}° desviado respecto a 88° (normal: 85-90°). La simulación DFO aislada deja LDFA postop en ${ldfaPostDFO.toFixed(1)}° (rango seguro 83-93°). La corrección se realiza a nivel femoral distal (<a class="ref-link" href="articulos/Ollivier-KSSTA-2025.pdf" target="_blank">Ollivier et al. KSSTA 2025</a>).`;
             recoClass = '';
         } else if (needsDLO && dfoSafe && fPct > tPct) {
             // DFO aislada viable: criterios DLO presentes pero la simulación DFO normaliza LDFA y JLO
@@ -2124,6 +2166,7 @@ function diagnosticoDiferencial(akuma, edad, mLDFA, mMPTA, JLCA, targetHKA, mHKA
             if (mpptaPostHTO > 90) reasons.push(`<span class="criterio-limite">mMPTA postop HTO &gt; 90°</span> &rarr; <span class="criterio-ok">Caso: ${mpptaPostHTO.toFixed(1)}° ✓</span><br><small>ESSKA permite hasta 93° (<a class="ref-link" href="articulos/Lott-JISAKOS-2024.pdf" target="_blank">Lott et al. JISAKOS 2024</a>)</small>`);
             if (jloPostHTO > 5) reasons.push(`<span class="criterio-limite">JLO postop HTO &gt; 5°</span> &rarr; <span class="criterio-ok">Caso: ${jloPostHTO.toFixed(1)}° ✓</span><br><small><a class="ref-link" href="https://doi.org/10.1002/ksa.12256" target="_blank">Dawson et al. ESSKA Consensus Part I KSSTA 2024</a></small>`);
             if (correccion > 12.5) reasons.push(`<span class="criterio-limite">Corrección total &gt; 12.5°</span> &rarr; <span class="criterio-ok">Caso: ${correccion.toFixed(1)}° ✓</span>`);
+            if (ldfaPostDFO < 83 || ldfaPostDFO > 93) reasons.push(`<span class="criterio-limite">LDFA postop DFO fuera de 83-93°</span> &rarr; <span class="criterio-ok">Caso: ${ldfaPostDFO.toFixed(1)}° ✓</span><br><small>DFO aislada llevaría el fémur fuera de rango — corrección compartida con la tibia</small>`);
             const dloFemVar = esVaro ? 'LCWDFO' : 'MCWDFO';
             const dloTibVar = esVaro ? 'MOWHTO' : 'MCWHTO';
             const dloFemEs = esVaro ? 'Cierre cuña lateral femoral' : 'Cierre cuña medial femoral';
@@ -2161,8 +2204,19 @@ function planificarCorreccion(mHKA, targetHKA, mLDFA, mMPTA, JLCA, recoName, esV
     const safetyWarnings = [];
     // Variante quirúrgica para tibia (necesario para slope)
     let tibVariant = '';
+    // Zona gris con deformidad predominantemente tibial (T% ≥ 80%, |FD| ≤ 3°)
+    // → planificar como HTO. La elección final UKA/HTO sigue siendo del cirujano,
+    // pero mostramos un plan de cuña accionable en vez de dejarlo en blanco.
+    let effectiveReco = recoName;
+    if (recoName === 'Osteotomía / UKA') {
+        const TDabs = Math.abs(esVaro ? (87 - mMPTA) : (mMPTA - 87));
+        const FDabs = Math.abs(esVaro ? (mLDFA - 87) : (87 - mLDFA));
+        const totalTF = TDabs + FDabs;
+        const tFrac = totalTF > 0 ? TDabs / totalTF : 0;
+        if (FDabs <= 3 && tFrac >= 0.8) effectiveReco = 'HTO';
+    }
 
-    if (recoName === 'HTO') {
+    if (effectiveReco === 'HTO') {
         targetMPTA = esVaro ? mMPTA + correccion : mMPTA - correccion;
         tibVariant = esVaro ? 'MOWHTO' : 'MCWHTO';
         // Micicoi: aplicar siempre que JLCA > 2° (Micicoi et al. 2020)
@@ -2176,9 +2230,9 @@ function planificarCorreccion(mHKA, targetHKA, mLDFA, mMPTA, JLCA, recoName, esV
         if (JLCA > 6) {
             safetyWarnings.push('JLCA > 6°: HTO aislada contraindicada. Considerar prótesis unicompartimental o procedimiento combinado.');
         }
-    } else if (recoName === 'DFO') {
+    } else if (effectiveReco === 'DFO') {
         targetLDFA = esVaro ? mLDFA - correccion : mLDFA + correccion;
-    } else if (recoName === 'DLO') {
+    } else if (effectiveReco === 'DLO') {
         const tibCorrec = Math.abs(mMPTA - 87);
         const femCorrec = Math.abs(mLDFA - 87);
         targetMPTA = esVaro ? mMPTA + tibCorrec : mMPTA - tibCorrec;
@@ -2219,10 +2273,20 @@ function planificarCorreccion(mHKA, targetHKA, mLDFA, mMPTA, JLCA, recoName, esV
         if (slopePostop < 5) safetyWarnings.push(`Slope postop estimado ${slopePostop.toFixed(1)}° < 5°: puede limitar flexión de rodilla.`);
     }
 
+    // HKA postop anclado al HKA preop introducido por el usuario para evitar
+    // drift por redondeo de los ángulos óseos.
+    // Para varo:  HKA = HKA_preop + ΔMPTA − ΔLDFA + micicoiReduccion (JLCA cae)
+    // Para valgo: HKA = HKA_preop + ΔMPTA − ΔLDFA − micicoiReduccion
+    const hkaPreop = 180 + mHKA;
+    const signMicicoi = esVaro ? +1 : -1;
+    const hkaResultante = hkaPreop + (targetMPTA - mMPTA) - (targetLDFA - mLDFA) + signMicicoi * micicioiReduccion;
+    const jlcaPostop = JLCA - micicioiReduccion;
+
     return {
         correccion, targetMPTA, targetLDFA, jloPostop,
         wedgeHeight, micicoi, micicioiReduccion, safetyWarnings, tibialCorrecAngle,
-        slopePostop, slopeDelta, tibVariant
+        slopePostop, slopeDelta, tibVariant,
+        effectiveReco, hkaResultante, hkaPreop, jlcaPostop
     };
 }
 
@@ -2315,17 +2379,18 @@ function generarExplicacion(data, clasificacion, akuma, diag, correc) {
 
     if (correc.micicoi) {
         const correcOsea = correc.correccion - correc.micicioiReduccion;
-        paso4 += `${v('Micicoi', 'purple')} (<a class="ref-link" href="https://doi.org/10.1186/s40634-020-00283-1" target="_blank">Micicoi et al. 2020</a>): JLCA ${data.jlca}° > 2° → <a href="#" class="seesaw-link" onclick="mostrarSeesaw(event)">efecto seesaw</a>: −(${data.jlca}−2)/2 = ${v('−' + correc.micicioiReduccion.toFixed(1) + '°', 'purple')}<br>`;
+        paso4 += `${v('Micicoi', 'purple')} (<a class="ref-link" href="https://doi.org/10.1186/s40634-020-00283-1" target="_blank">Micicoi et al. 2020</a>; refinamiento validado por <a class="ref-link" href="https://doi.org/10.1007/s00167-016-4408-3" target="_blank">Hiranaka et al. KSSTA 2017</a>): JLCA ${data.jlca}° > 2° → <a href="#" class="seesaw-link" onclick="mostrarSeesaw(event)">efecto seesaw</a>: −(${data.jlca}−2)/2 = ${v('−' + correc.micicioiReduccion.toFixed(1) + '°', 'purple')}<br>`;
         paso4 += `Corrección ósea real: ${correc.correccion.toFixed(1)}° − ${correc.micicioiReduccion.toFixed(1)}° = ${v(correcOsea.toFixed(1) + '°', 'accent')}`;
     }
 
-    if (diag.recoName === 'HTO') {
+    const planReco = correc.effectiveReco || diag.recoName;
+    if (planReco === 'HTO') {
         const correcTibial = correc.micicoi ? correc.correccion - correc.micicioiReduccion : correc.correccion;
         const micicNote = correc.micicoi ? correc.micicioiReduccion.toFixed(1) : null;
         paso4 += arrowVisual('mMPTA', data.mmpta.toFixed(1), correc.targetMPTA.toFixed(1), correcTibial.toFixed(1), '+', micicNote);
-    } else if (diag.recoName === 'DFO') {
+    } else if (planReco === 'DFO') {
         paso4 += arrowVisual('mLDFA', data.mldfa.toFixed(1), correc.targetLDFA.toFixed(1), correc.correccion.toFixed(1), '−', null);
-    } else if (diag.recoName === 'DLO') {
+    } else if (planReco === 'DLO') {
         const tibDelta = Math.abs(correc.targetMPTA - data.mmpta);
         const femDelta = Math.abs(correc.targetLDFA - data.mldfa);
         const micicNote = correc.micicoi ? correc.micicioiReduccion.toFixed(1) : null;
@@ -2333,7 +2398,7 @@ function generarExplicacion(data, clasificacion, akuma, diag, correc) {
         paso4 += arrowVisual('mMPTA', data.mmpta.toFixed(1), correc.targetMPTA.toFixed(1), tibDelta.toFixed(1), '+', micicNote);
         paso4 += arrowVisual('mLDFA', data.mldfa.toFixed(1), correc.targetLDFA.toFixed(1), femDelta.toFixed(1), '−', null);
     }
-    paso4 += `Altura de cuña tibial estimada: ${TIBIAL_WIDTH}mm × tan(${correc.tibialCorrecAngle.toFixed(1)}°) = ${v(correc.wedgeHeight.toFixed(1) + ' mm', 'accent')}`;
+    paso4 += `Altura de cuña tibial (Hernigou): <code>Wt × tan(α) = Wt × tan(${correc.tibialCorrecAngle.toFixed(1)}°)</code><br><span style="font-size:12px;color:var(--text-muted)">Introducir <strong>Wt</strong> (anchura meseta tibial del paciente) en la tarjeta superior. Referencia ♂ 70-80 mm / ♀ 60-70 mm.</span>`;
     if (correc.tibVariant === 'MOWHTO') {
         paso4 += `<br><span style="font-size:12px;color:var(--text-muted)">En osteotomías de apertura, sumar el grosor de la sierra oscilante (estándar 1.27 mm) a la cuña ósea para obtener la apertura total necesaria (<a class="ref-link" href="articulos/Surgical strategy and complication management of osteotomy around the painful degenerative varus knee.pdf" target="_blank">Ollivier et al. KSSTA 2024</a>).</span>`;
     }
@@ -3204,9 +3269,14 @@ function onPostopEdit() {
     const jlo = Math.abs(mptaNew - ldfaNew);
     document.getElementById('ci-jlo').textContent = jlo.toFixed(1) + '°';
 
-    // HKA resultante: targetHKA + desviaciones manuales respecto al plan
+    // HKA resultante: anclado al HKA preop, con deltas anatómicos sobre los ángulos.
+    // El efecto Micicoi (caída espontánea de JLCA) solo se cuenta si hay cuña tibial real;
+    // si el usuario dial mMPTA de vuelta al preop (sin osteotomía), no hay redistribución.
     const ctx = window._postopCtx;
-    const hka = ctx.targetHKA + (mptaNew - ctx.mptaPlanned) - (ldfaNew - ctx.ldfaPlanned);
+    const tibAngleNow = Math.abs(mptaNew - ctx.mmptaOrig);
+    const micicoiActiva = tibAngleNow > 0.1 ? ctx.micicoiReduccion : 0;
+    const signMic = ctx.esVaro ? +1 : -1;
+    const hka = ctx.hkaPreop + (mptaNew - ctx.mmptaOrig) - (ldfaNew - ctx.mldfaOrig) + signMic * micicoiActiva;
     document.getElementById('ci-hka').textContent = hka.toFixed(1) + '°';
 
     // Delta badges
@@ -3425,9 +3495,10 @@ function onCalcularCorreccion() {
         ? (correc.targetLDFA > ldfaJloLimit ? 'warn' : '')
         : (correc.targetLDFA < ldfaJloLimit ? 'warn' : '');
     const jloClr = correc.jloPostop > 5 ? 'danger' : correc.jloPostop > 4 ? 'warn' : '';
-    // HKA resultante: el plan logra exactamente el objetivo;
-    // desviaciones manuales del usuario se reflejan como deltas sobre targetRaw
-    const hkaResultante = targetRaw;
+    // HKA resultante: calculado a partir del plan real (en zona gris sin fallback
+    // HTO, el plan no toca los ángulos y el HKA postop coincide con el preop).
+    // Desviaciones manuales del usuario se reflejan en onPostopEdit.
+    const hkaResultante = correc.hkaResultante;
     const deltaMPTA = correc.targetMPTA - mmpta;
     const deltaLDFA = correc.targetLDFA - mldfa;
     const fmtDelta = d => (d >= 0 ? '+' : '') + d.toFixed(1) + '°';
@@ -3438,15 +3509,15 @@ function onCalcularCorreccion() {
         const sClr = correc.slopePostop > 12 ? 'slope-danger' : correc.slopePostop < 5 ? 'slope-danger' : correc.slopePostop > 10 ? 'slope-warn' : 'slope-ok';
         const sDelta = correc.slopeDelta >= 0 ? '+' + correc.slopeDelta.toFixed(1) : correc.slopeDelta.toFixed(1);
         const slopeExplain = correc.tibVariant === 'MOWHTO'
-            ? 'La apertura medial aumenta el slope posterior (~2° por cada 10° de corrección frontal)'
-            : 'El cierre medial disminuye el slope posterior (~2° por cada 10° de corrección frontal)';
+            ? 'La apertura medial aumenta el slope posterior (~2° por cada 10° de corrección frontal · rango real 1.5–3°/10° según técnica biplanar)'
+            : 'El cierre medial disminuye el slope posterior (~2° por cada 10° de corrección frontal · rango real 1.5–3°/10° según técnica biplanar)';
         slopeHtml = `<div class="correction-item" id="ci-box-slope"><div class="ci-label">Slope postop (PPTA)</div><div class="ci-value" id="ci-slope">${correc.slopePostop.toFixed(1)}°</div><div class="ci-note"><div class="ci-slope-row">${ppta.toFixed(1)}° <span class="slope-delta ${sClr}">${sDelta}°</span> <span class="slope-val">${correc.slopePostop.toFixed(1)}°</span></div><span style="font-size:10px;line-height:1.4;display:block;margin-top:3px">${slopeExplain}</span>Normal: <strong>5-12°</strong></div></div>`;
     }
 
     document.getElementById('correction-grid').innerHTML = `
         <div class="correction-item ${mpClr}" id="ci-box-mmpta"><div class="ci-label">mMPTA postop</div><div class="ci-value"><input type="number" class="ci-input" id="ci-mmpta" value="${correc.targetMPTA.toFixed(1)}" step="0.5" inputmode="decimal">°</div><div class="ci-note"><span class="ci-delta-row">${mmpta}° <span class="ci-delta-badge ${deltaClass(deltaMPTA)}" id="ci-delta-mmpta">${fmtDelta(deltaMPTA)}</span> ${correc.targetMPTA.toFixed(1)}°</span><br>Límite: <strong id="ci-mmpta-limit">${mptaUp ? '&lt;' : '&gt;'}${mptaJloLimit.toFixed(0)}°</strong></div></div>
         <div class="correction-item ${ldfaClr}" id="ci-box-mldfa"><div class="ci-label">mLDFA postop</div><div class="ci-value"><input type="number" class="ci-input" id="ci-mldfa" value="${correc.targetLDFA.toFixed(1)}" step="0.5" inputmode="decimal">°</div><div class="ci-note"><span class="ci-delta-row">${mldfa}° <span class="ci-delta-badge ${deltaClass(deltaLDFA)}" id="ci-delta-mldfa">${fmtDelta(deltaLDFA)}</span> ${correc.targetLDFA.toFixed(1)}°</span><br>Límite: <strong id="ci-mldfa-limit">${ldfaUp ? '&lt;' : '&gt;'}${ldfaJloLimit.toFixed(0)}°</strong></div></div>
-        <div class="correction-item ${jloClr}" id="ci-box-jlo"><div class="ci-label">JLO postop</div><div class="ci-value" id="ci-jlo">${correc.jloPostop.toFixed(1)}°</div><div class="ci-note">Límite: <strong>&lt;5°</strong></div></div>
+        <div class="correction-item ${jloClr}" id="ci-box-jlo"><div class="ci-label">JLO postop</div><div class="ci-value" id="ci-jlo">${correc.jloPostop.toFixed(1)}°</div><div class="ci-note">Límite: <strong>&lt;5°</strong> oblicuidad estática<details class="jlo-info"><summary>ⓘ qué significa</summary><div>Es <strong>|MPTA − LDFA|</strong>. El objetivo NO es JLO=0° en RX estática: una oblicuidad ≤3° estática suele horizontalizarse en carga (Momento aducción de la rodilla). Métrica complementaria: mMPTA postop &lt;95° (Miniaci).</div></details></div></div>
         <div class="correction-item" id="ci-box-plate" style="display:none"><div class="ci-label">Placa recomendada</div><div class="ci-value" id="ci-plate-val" style="color:var(--text-light);font-size:13px">—</div><div class="ci-note" id="ci-plate-note"></div></div>
         ${slopeHtml}
         <div class="correction-item" id="ci-box-wedge"><div class="ci-label">Altura cuña</div><div class="ci-value" id="ci-wedge" style="color:var(--text-light);font-size:13px">—</div><div class="ci-note"><span id="ci-wedge-formula" style="font-size:10px;color:var(--text-muted)"></span><span id="ci-wedge-breakdown" style="display:none;font-size:10px;line-height:1.6;margin:2px 0 4px;color:var(--text-muted)"></span>Anchura tibial: <input type="number" class="ci-input-sm" id="ci-tibwidth" value="" placeholder="mm" step="1" inputmode="numeric"> mm<br><span style="font-size:10px;color:var(--text-light)">&#9794; 70-80 mm / &#9792; 60-70 mm</span>${correc.tibVariant === 'MOWHTO' ? `<br>Grosor sierra: <input type="number" class="ci-input-sm" id="ci-sierra" value="1.27" placeholder="mm" step="0.01" inputmode="decimal"> mm<br><span style="font-size:10px;color:var(--text-light)">Estándar 1.27 mm (rango 1.0–2.2)</span>` : ''}</div></div>
@@ -3454,7 +3525,7 @@ function onCalcularCorreccion() {
     `;
 
     // Store original preop values for wedge recalculation
-    window._postopCtx = { mmptaOrig: mmpta, mldfaOrig: mldfa, targetHKA: targetRaw, mptaPlanned: correc.targetMPTA, ldfaPlanned: correc.targetLDFA, ppta: ppta, tibVariant: correc.tibVariant, tibCorrecAngle: correc.tibialCorrecAngle, mptaUp, ldfaUp };
+    window._postopCtx = { mmptaOrig: mmpta, mldfaOrig: mldfa, targetHKA: targetRaw, mptaPlanned: correc.targetMPTA, ldfaPlanned: correc.targetLDFA, ppta: ppta, tibVariant: correc.tibVariant, tibCorrecAngle: correc.tibialCorrecAngle, mptaUp, ldfaUp, esVaro: akuma.esVaro, micicoiReduccion: correc.micicioiReduccion, hkaPreop: correc.hkaPreop };
 
     balanceCorrectionGrid();
 
@@ -4051,9 +4122,10 @@ function generarPDFImpl(soloAnalisis) {
 
         // ── Determine variant and plate type ──
         let pdfVariant = correc.tibVariant || '';
-        if (diag.recoName === 'DFO') {
+        const pdfPlanReco = correc.effectiveReco || diag.recoName;
+        if (pdfPlanReco === 'DFO') {
             pdfVariant = akuma.esVaro ? 'LCWDFO' : 'MCWDFO';
-        } else if (diag.recoName === 'DLO') {
+        } else if (pdfPlanReco === 'DLO') {
             // DLO has both tibial + femoral; use tibial variant for wedge, show both
             if (!pdfVariant) pdfVariant = akuma.esVaro ? 'MOWHTO' : 'MCWHTO';
         }
@@ -4062,7 +4134,7 @@ function generarPDFImpl(soloAnalisis) {
         // ── Recalculate wedge with user tibial width if provided ──
         const pdfSierraVal = isNaN(userSierra) ? (correc.tibVariant === 'MOWHTO' ? 1.27 : 0) : userSierra;
         const pdfTibWidth = userTibWidth || TIBIAL_WIDTH;
-        const isHTO = diag.recoName === 'HTO' || diag.recoName === 'DLO';
+        const isHTO = pdfPlanReco === 'HTO' || pdfPlanReco === 'DLO';
         const pdfWedgeHeight = isHTO ? pdfTibWidth * Math.tan(correc.tibialCorrecAngle * Math.PI / 180) : correc.wedgeHeight;
         const pdfWedgeTotal = pdfWedgeHeight + pdfSierraVal;
         const pdfPlateWedge = correc.tibVariant === 'MOWHTO' ? pdfWedgeTotal : pdfWedgeHeight;
@@ -4255,6 +4327,31 @@ document.addEventListener('click', (e) => {
         cerrarWBLR();
     }
 });
+
+// Conversión WBLR (% desde margen medial) → HKA objetivo (°).
+// Aproximación clínica clásica de Dugdale/Fujisawa: el desplazamiento de
+// 12.5 puntos del WBLR (50% → 62.5% Fujisawa) corresponde a ~3° de valgo
+// añadido al HKA. Para una rodilla varia, esto da el target HKA habitual:
+//   50%   →  180°  (neutro)
+//   55%   →  181.2° (corrección biológica leve)
+//   60%   →  182.4° (OA medial moderada)
+//   62.5% →  183°   (Fujisawa clásico)
+//   65%   →  183.6° (OA medial severa)
+// Aproximación independiente del paciente — para planning fino se debe
+// trazar la línea de Mikulicz sobre la RX en carga.
+function setTargetByWBLR(wblrPct) {
+    const targetHKA = 180 + (wblrPct - 50) * 0.24;
+    const inp = document.getElementById('inp-target');
+    if (!inp) return;
+    inp.value = targetHKA.toFixed(1);
+    inp.dispatchEvent(new Event('input', { bubbles: true }));
+    document.querySelectorAll('#wblr-chips .wblr-chip').forEach(c => {
+        c.classList.toggle('active', parseFloat(c.dataset.wblr) === wblrPct);
+    });
+    if (typeof onCalcularCorreccion === 'function' && document.getElementById('correction-results')?.style.display !== 'none') {
+        onCalcularCorreccion();
+    }
+}
 
 // ─────────────────────────────────────────────
 //  VARIANT TOOLTIP — implicaciones clínicas
